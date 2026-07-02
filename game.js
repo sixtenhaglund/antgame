@@ -37,7 +37,19 @@ function updateAcid() {
     b.vx *= 0.95;            // drag, so the spray slows as it travels
     b.vy *= 0.95;
     b.life--;
-    if (b.life <= 0) acidBlobs.splice(i, 1);   // remove dead blob
+
+    // did this blob hit a dummy? (circle vs circle)
+    let hit = false;
+    for (const d of dummies) {
+      if (d.hp <= 0) continue;
+      if (Math.hypot(b.x - d.x, b.y - d.y) < d.radius + b.r) {
+        hurtDummy(d, b.dmg);
+        hit = true;
+        break;
+      }
+    }
+
+    if (hit || b.life <= 0) acidBlobs.splice(i, 1);   // remove used-up blob
   }
 }
 
@@ -76,6 +88,76 @@ function placeAnts() {
   player.y = canvas.height / 2 + 80;
 }
 placeAnts();
+placeDummies();
+
+// ---- Test dummies: one per rank, to practice attacks on ----
+const dummies = [];
+function placeDummies() {
+  const names = Object.keys(RANKS);
+  const spacing = 95;
+  const startX = queen.x - ((names.length - 1) * spacing) / 2;
+  for (let i = 0; i < names.length; i++) {
+    const rank = RANKS[names[i]];
+    dummies.push({
+      x: startX + i * spacing,
+      y: queen.y - 190,          // up above the queen
+      size: rank.size,
+      radius: rank.radius,
+      hp: rank.hp,
+      maxHp: rank.hp,
+      name: names[i],
+      angle: Math.PI / 2,        // facing down, toward where you approach from
+      respawn: 0,                // frames until it comes back after dying
+    });
+  }
+}
+
+// Hurt a dummy; if it dies, start its respawn countdown.
+function hurtDummy(d, amount) {
+  d.hp -= amount;
+  if (d.hp <= 0) {
+    d.hp = 0;
+    d.respawn = 90;   // ~1.5 seconds, then back to full
+  }
+}
+
+function updateDummies() {
+  for (const d of dummies) {
+    if (d.hp <= 0 && d.respawn > 0) {
+      d.respawn--;
+      if (d.respawn === 0) d.hp = d.maxHp;   // revive
+    }
+  }
+}
+
+function drawDummies() {
+  for (const d of dummies) {
+    if (d.hp <= 0) {
+      // faint circle where it's respawning
+      ctx.fillStyle = "rgba(140,140,140,0.25)";
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
+      ctx.fill();
+      continue;
+    }
+    // draw the dummy in a reddish tint so it reads as a target
+    drawAnt({ x: d.x, y: d.y, size: d.size, color: "#8a4a3a", angle: d.angle });
+
+    // health bar above it
+    const w = d.size * 2.4;
+    const bx = d.x - w / 2;
+    const by = d.y - d.size - 14;
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillRect(bx, by, w, 4);
+    ctx.fillStyle = "#5ad25a";
+    ctx.fillRect(bx, by, w * (d.hp / d.maxHp), 4);
+    // label with numbers
+    ctx.fillStyle = "#e8dcc0";
+    ctx.font = "9px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(d.name + "  " + Math.ceil(d.hp) + "/" + d.maxHp, d.x, by - 3);
+  }
+}
 
 // ---- Game state: "menu" until a rank AND type are chosen, then "playing" ----
 let gameState = "menu";
@@ -175,8 +257,22 @@ function update() {
     player.biteAnim = BITE_TIME;
     player.biteCooldown = BITE_TIME + BITE_COOLDOWN;
   }
+  // The bite lands partway through the animation (during the charge). At that
+  // frame, damage any dummy right in front of the mouth.
+  if (player.biteAnim === 12) {
+    const mx = player.x + Math.cos(player.angle) * player.size * 1.2;
+    const my = player.y + Math.sin(player.angle) * player.size * 1.2;
+    for (const d of dummies) {
+      if (d.hp <= 0) continue;
+      if (Math.hypot(mx - d.x, my - d.y) < d.radius + player.size * 0.9) {
+        hurtDummy(d, player.dmg);
+      }
+    }
+  }
   if (player.biteAnim > 0) player.biteAnim--;
   if (player.biteCooldown > 0) player.biteCooldown--;
+
+  updateDummies();
 
   // Ability (E key): start the Spitter's rear-up-and-shoot animation.
   if (keys["e"] && player.abilityCooldown <= 0 && player.abilityAnim <= 0
@@ -291,6 +387,7 @@ function draw() {
   drawGround();
   drawQueen(queen);
   drawTypeGrid();  // TEMP: the type × rank grid
+  drawDummies();   // practice targets
   drawAcid();      // under the ant, so the head hides where it spawns
   drawAnt(player);
 
