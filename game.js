@@ -271,9 +271,8 @@ function startGame(type) {
   const rank = RANKS[chosenRank];
   player.size = rank.size;         // apply the chosen rank...
   player.radius = rank.radius;
-  // some types modify base stats (Armoured: tougher but slower)
-  player.speed = rank.speed * (type.speedMult || 1);
-  // a type can override HP per rank (Armoured); otherwise use the rank's HP.
+  // a type can override speed/HP per rank (Armored); else use the rank's value.
+  player.speed = (type.speed && type.speed[chosenRank]) || rank.speed;
   player.maxHp = (type.hp && type.hp[chosenRank]) || rank.hp;
   player.hp = player.maxHp;
   player.dmg = rank.dmg;
@@ -449,7 +448,7 @@ function drawTypeGrid() {
 
       // stats under each ant: HP (type may override per rank), bite dmg, speed
       const hp = (type.hp && type.hp[rankNames[c]]) || rank.hp;
-      const spd = (rank.speed * (type.speedMult || 1)).toFixed(1);
+      const spd = ((type.speed && type.speed[rankNames[c]]) || rank.speed).toFixed(1);
       ctx.fillStyle = "#b8a888";
       ctx.font = "9px monospace";
       ctx.textAlign = "center";
