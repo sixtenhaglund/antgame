@@ -48,7 +48,7 @@ const ANT_TYPES = [
     dmg:   { Minor: 3, Major: 6, Supermajor: 10 } },     // weaker bite
   { name: "Weaver", weaver: true, ability: "E: net trap, slows 4s (costs food)",
     hp:    { Minor: 15,  Major: 35,  Supermajor: 70 },    // fragile
-    speed: { Minor: 4,   Major: 3.5, Supermajor: 2.5 },   // fast
+    speed: { Minor: 3.4, Major: 3,   Supermajor: 2.2 },   // fairly quick
     netCost: { Minor: 1, Major: 2, Supermajor: 3 } },     // food per net
 ];
 

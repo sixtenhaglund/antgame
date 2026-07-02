@@ -245,12 +245,12 @@ let ctx = canvas.getContext("2d");   // "2d" = the toolbox for drawing shapes
 // Render one ant (with its type markings) onto a small canvas for a menu icon.
 function makeAntIcon(type, size) {
   const c = document.createElement("canvas");
-  c.width = 68;
-  c.height = 68;
+  c.width = 76;
+  c.height = 76;
   c.className = "icon";
   const prev = ctx;
   ctx = c.getContext("2d");
-  ctx.translate(34, 34);         // draw around the icon's center
+  ctx.translate(38, 38);         // draw around the icon's center
   drawAnt({ x: 0, y: 0, size: size, color: (type && type.color) || ANT_COLOR, angle: -Math.PI / 2, type: type || null });
   ctx = prev;                    // point ctx back at the screen
   return c;
@@ -476,14 +476,14 @@ function makeCard(icon, name, descText, onClick) {
 const ranksDiv = document.getElementById("ranks");
 for (const name in RANKS) {
   const rank = RANKS[name];
-  const icon = makeAntIcon(null, rank.size * 0.5);   // a plain ant, sized by rank
+  const icon = makeAntIcon(null, rank.size * 0.62);   // a plain ant, sized by rank
   ranksDiv.appendChild(makeCard(icon, name, rank.desc, () => chooseRank(name)));
 }
 
 // Step 2: one card per type (icon shows the type's markings).
 const typesDiv = document.getElementById("types");
 for (const type of ANT_TYPES) {
-  const icon = makeAntIcon(type, 12);
+  const icon = makeAntIcon(type, 16);
   typesDiv.appendChild(makeCard(icon, type.name, type.ability, () => startGame(type)));
 }
 
