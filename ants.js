@@ -34,7 +34,7 @@ function drawMandibles(frontX, k, bite = 0) {
   ctx.lineWidth = 1.4 * k;
   ctx.lineCap = "round";
   const rootY = 1.5 * k;                 // how far apart the jaw hinges sit
-  const rot = -0.5 + bite * 0.9;         // hinge angle: splayed open → swung shut
+  const rot = -0.35 + bite * 0.55;       // hinge angle: splayed open → swung shut
 
   // One curved jaw blade, hinged at (0,0) and curving toward the center line.
   const jaw = () => {
@@ -96,14 +96,14 @@ function drawAnt(a) {
     const p = 1 - a.biteAnim / BITE_TIME;
     if (p < 0.35) {                    // wind-up: pull the head back
       const t = p / 0.35;              // 0 → 1 within this phase
-      lunge = -1.5 * t;
+      lunge = -0.8 * t;
     } else if (p < 0.6) {              // charge: shoot forward + snap shut
       const t = (p - 0.35) / 0.25;
-      lunge = -1.5 + t * 2.5;          // -1.5 → +1.0 (stays attached to thorax)
+      lunge = -0.8 + t * 1.4;          // -0.8 → +0.6 (small thrust)
       bite = t;
     } else {                           // recover: ease back, jaws reopen
       const t = (p - 0.6) / 0.4;
-      lunge = 1.0 - t * 1.0;           // +1.0 → 0
+      lunge = 0.6 - t * 0.6;           // +0.6 → 0
       bite = 1 - t;
     }
   }
