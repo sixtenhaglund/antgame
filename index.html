@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ant Game</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="hud">aim with mouse &nbsp;•&nbsp; W/A/S/D to move &nbsp;•&nbsp; click to bite &nbsp;•&nbsp; scroll to zoom</div>
+  <canvas id="game"></canvas>
+
+  <!-- Scripts load top to bottom and share their variables.
+       game.js is last because it uses things the others define. -->
+  <script src="input.js"></script>
+  <script src="ants.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

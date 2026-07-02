@@ -1,0 +1,21 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #1a1207;      /* dark soil color */
+  overflow: hidden;
+  font-family: monospace;
+  color: #e8dcc0;
+}
+
+#hud {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  font-size: 14px;
+  opacity: 0.8;
+  pointer-events: none;     /* clicks pass through to the game */
+}
+
+canvas {
+  display: block;           /* removes the tiny gap under the canvas */
+}
