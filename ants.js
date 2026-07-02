@@ -33,7 +33,7 @@ const player = {
 const RANKS = {
   Minor:      { size: 9,  radius: 4, speed: 3.6, desc: "small & fast" },
   Major:      { size: 13, radius: 6, speed: 2.8, desc: "balanced" },
-  Supermajor: { size: 18, radius: 9, speed: 2.2, desc: "big & strong" },
+  Supermajor: { size: 26, radius: 13, speed: 2.0, desc: "big & strong" },
 };
 
 // ---- The ant types (we'll add more here) ----
