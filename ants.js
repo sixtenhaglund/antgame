@@ -61,18 +61,20 @@ const STING_TIPX  = -18;   // x of the stinger tip (in body units, ×k)
 // bite = 0 (open) .. 1 (snapped shut): the tips swing toward the center and
 // jab a little further forward, so a bite looks like a real chomp.
 function drawMandibles(frontX, k, bite = 0) {
-  ctx.strokeStyle = "#d8cba8";
-  ctx.lineWidth = 1.4 * k;
-  ctx.lineCap = "round";
+  ctx.fillStyle = "#d8cba8";
   const rootY = 1.5 * k;                 // how far apart the jaw hinges sit
   const rot = -0.35 + bite * 0.55;       // hinge angle: splayed open → swung shut
 
-  // One curved jaw blade, hinged at (0,0) and curving toward the center line.
+  // One curved jaw blade, hinged at (0,0): wide at the base, curving toward
+  // the center line and tapering to a sharp point (spiky) at the tip.
   const jaw = () => {
+    const hw = 0.9 * k;                  // half-width at the base
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(2.8 * k, -0.2 * k, 4.2 * k, 1.0 * k);
-    ctx.stroke();
+    ctx.moveTo(0, -hw);                                            // base, outer corner
+    ctx.quadraticCurveTo(2.8 * k, -0.2 * k - hw, 4.2 * k, 1.0 * k);  // outer edge → point
+    ctx.quadraticCurveTo(2.8 * k, -0.2 * k + hw, 0, hw);          // inner edge → base
+    ctx.closePath();
+    ctx.fill();
   };
 
   // upper jaw: hinge above the mouth, rotate it.
