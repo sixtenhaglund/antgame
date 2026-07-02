@@ -1,6 +1,51 @@
 const BITE_TIME = 22;       // how many frames one bite lasts (wind-up + charge + recover)
 const BITE_COOLDOWN = 45;   // extra frames you must wait after a bite before biting again
 
+// ---- Acid spray (Spitter ability) ----
+const ACID_SPEED = 7;       // how fast blobs fly
+const ACID_LIFE = 38;       // frames a blob lives before fading
+const acidBlobs = [];       // all acid blobs currently in the air
+
+// Spray a fan of acid blobs out of the player's mouth, toward where it aims.
+function spawnAcid() {
+  const mouthX = player.x + Math.cos(player.angle) * player.size * 1.3;
+  const mouthY = player.y + Math.sin(player.angle) * player.size * 1.3;
+  for (let i = -1; i <= 1; i++) {                 // three blobs in a small fan
+    const a = player.angle + i * 0.18;            // spread them by angle
+    acidBlobs.push({
+      x: mouthX, y: mouthY,
+      vx: Math.cos(a) * ACID_SPEED,
+      vy: Math.sin(a) * ACID_SPEED,
+      life: ACID_LIFE,
+      r: 2.5 + Math.random() * 1.5,               // slight size variety
+    });
+  }
+}
+
+// Move every blob, slow it down, and drop it once its life runs out.
+function updateAcid() {
+  // Loop backwards so removing an item doesn't skip the next one.
+  for (let i = acidBlobs.length - 1; i >= 0; i--) {
+    const b = acidBlobs[i];
+    b.x += b.vx;
+    b.y += b.vy;
+    b.vx *= 0.95;            // drag, so the spray slows as it travels
+    b.vy *= 0.95;
+    b.life--;
+    if (b.life <= 0) acidBlobs.splice(i, 1);   // remove dead blob
+  }
+}
+
+function drawAcid() {
+  for (const b of acidBlobs) {
+    // fade out as life drops toward 0
+    ctx.fillStyle = "rgba(174,242,90," + (b.life / ACID_LIFE) + ")";
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
 // ---- Canvas: our drawing surface ----
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");   // "2d" = the toolbox for drawing shapes
@@ -115,9 +160,14 @@ function update() {
   if (mouse.down && player.biteAnim <= 0 && player.biteCooldown <= 0) {
     player.biteAnim = BITE_TIME;
     player.biteCooldown = BITE_TIME + BITE_COOLDOWN;
+    // Spitters spray acid when they attack.
+    if (player.type && player.type.spitter) spawnAcid();
   }
   if (player.biteAnim > 0) player.biteAnim--;
   if (player.biteCooldown > 0) player.biteCooldown--;
+
+  // Move the acid blobs that are in the air.
+  updateAcid();
 }
 
 // ---- Circle collision: if `a` overlaps `b`, push `a` out to b's edge ----
@@ -212,6 +262,7 @@ function draw() {
   drawQueen(queen);
   drawTypeGrid();  // TEMP: the type × rank grid
   drawAnt(player);
+  drawAcid();
 
   ctx.restore();   // undo the camera so next frame starts clean
 }
