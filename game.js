@@ -55,7 +55,7 @@ function doSting() {
     if (d.hp <= 0) continue;
     if (Math.hypot(tip.x - d.x, tip.y - d.y) < d.radius + hitR) {
       hurtDummy(d, player.stingDmg);
-      spawnSplash(d.x, d.y, "220,60,50");   // red hit particles
+      spawnSplash(tip.x, tip.y, "220,60,50");   // red particles at the stinger tip
     }
   }
 }
@@ -337,7 +337,7 @@ function update() {
       if (d.hp <= 0) continue;
       if (Math.hypot(mx - d.x, my - d.y) < d.radius + player.size * 0.9) {
         hurtDummy(d, player.dmg);
-        spawnSplash(d.x, d.y, "220,60,50");   // red hit particles
+        spawnSplash(mx, my, "220,60,50");   // red particles at the mouth
       }
     }
   }
