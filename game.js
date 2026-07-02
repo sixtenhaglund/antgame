@@ -27,9 +27,24 @@ function spawnAcid() {
   }
 }
 
-// ---- Acid splash: tiny droplets that burst out where a blob lands ----
+// ---- The Stinger's sting: a close-range jab in front for big damage ----
+function doSting() {
+  const reach = player.size * 1.6;   // how far in front the jab lands
+  const jx = player.x + Math.cos(player.angle) * reach;
+  const jy = player.y + Math.sin(player.angle) * reach;
+  for (const d of dummies) {
+    if (d.hp <= 0) continue;
+    if (Math.hypot(jx - d.x, jy - d.y) < d.radius + player.size) {
+      hurtDummy(d, player.stingDmg);
+      spawnSplash(d.x, d.y, "255,226,122");   // yellow venom splash
+    }
+  }
+}
+
+// ---- Splash: tiny droplets that burst out where an attack lands ----
+// color is an "r,g,b" string so acid (green) and venom (yellow) can share this.
 const splashes = [];
-function spawnSplash(x, y) {
+function spawnSplash(x, y, color = "174,242,90") {
   for (let i = 0; i < 6; i++) {
     const a = Math.random() * Math.PI * 2;      // fly out in a random direction
     const spd = 1 + Math.random() * 2;
@@ -39,6 +54,7 @@ function spawnSplash(x, y) {
       vy: Math.sin(a) * spd,
       life: 10 + Math.random() * 6,
       r: 1 + Math.random() * 1.5,
+      color,
     });
   }
 }
@@ -55,7 +71,7 @@ function updateSplash() {
 }
 function drawSplash() {
   for (const s of splashes) {
-    ctx.fillStyle = "rgba(174,242,90," + Math.min(1, s.life / 8) + ")";
+    ctx.fillStyle = "rgba(" + s.color + "," + Math.min(1, s.life / 8) + ")";
     ctx.beginPath();
     ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
     ctx.fill();
@@ -241,6 +257,7 @@ function startGame(type) {
   player.hp = rank.hp;
   player.dmg = rank.dmg;
   player.acidDmg = rank.acidDmg;
+  player.stingDmg = rank.stingDmg;
   player.type = type;              // ...and the chosen type (for its markings)
   document.getElementById("menu").style.display = "none";  // hide the menu
   gameState = "playing";
@@ -309,14 +326,18 @@ function update() {
 
   updateDummies();
 
-  // Ability (E key): start the Spitter's rear-up-and-shoot animation.
-  if (keys["e"] && player.abilityCooldown <= 0 && player.abilityAnim <= 0
-      && player.type && player.type.spitter) {
+  // Ability (E key): any type that has one can start its ability animation.
+  const hasAbility = player.type && (player.type.spitter || player.type.stinger);
+  if (keys["e"] && player.abilityCooldown <= 0 && player.abilityAnim <= 0 && hasAbility) {
     player.abilityAnim = ABILITY_TIME;
     player.abilityCooldown = ABILITY_TIME + ABILITY_COOLDOWN;
   }
-  // The acid actually fires partway through the animation, at the peak.
-  if (player.abilityAnim === SHOOT_FRAME) spawnAcid();
+  // The ability's effect fires partway through the animation. Each type does
+  // its own thing at that moment.
+  if (player.abilityAnim === SHOOT_FRAME) {
+    if (player.type.spitter) spawnAcid();
+    else if (player.type.stinger) doSting();
+  }
   if (player.abilityAnim > 0) player.abilityAnim--;
   if (player.abilityCooldown > 0) player.abilityCooldown--;
 

@@ -29,14 +29,15 @@ const player = {
   hp: 45, maxHp: 45, // health (set from the chosen rank)
   dmg: 8,            // bite damage (set from the chosen rank)
   acidDmg: 4,        // acid damage per blob (set from the chosen rank)
+  stingDmg: 15,      // venom sting damage (set from the chosen rank)
   type: null         // which ant type you chose (set from the menu)
 };
 
 // ---- Player ranks: pick one at the start. Bigger = slower but tougher. ----
 const RANKS = {
-  Minor:      { size: 9,  radius: 4,  speed: 3.6, hp: 20, dmg: 4,  acidDmg: 3, desc: "small & fast" },
-  Major:      { size: 17, radius: 8,  speed: 2.8, hp: 45, dmg: 8,  acidDmg: 4, desc: "balanced" },
-  Supermajor: { size: 26, radius: 13, speed: 2.0, hp: 90, dmg: 15, acidDmg: 5, desc: "big & strong" },
+  Minor:      { size: 9,  radius: 4,  speed: 3.6, hp: 20, dmg: 4,  acidDmg: 3, stingDmg: 8,  desc: "small & fast" },
+  Major:      { size: 17, radius: 8,  speed: 2.8, hp: 45, dmg: 8,  acidDmg: 4, stingDmg: 15, desc: "balanced" },
+  Supermajor: { size: 26, radius: 13, speed: 2.0, hp: 90, dmg: 15, acidDmg: 5, stingDmg: 25, desc: "big & strong" },
 };
 
 // ---- The ant types (we'll add more here) ----
@@ -45,6 +46,7 @@ const RANKS = {
 const ANT_TYPES = [
   { name: "Basic" },
   { name: "Spitter", spitter: true },   // acid spitter: green gland on its back
+  { name: "Stinger", stinger: true },   // venom stinger: spins and jabs
 ];
 
 // ---- Curved mandibles (jaws), shared by the worker and the queen ----
@@ -88,9 +90,17 @@ function drawAnt(a) {
   const c = a.color;
   const k = a.size / 10;   // size scale: everything below is multiplied by k
 
+  // Ability animation: rise goes 0 → 1 → 0 over the ability. (Computed up
+  // here because the Stinger's spin below needs it.)
+  let rise = 0;
+  if (a.abilityAnim > 0) rise = Math.sin((1 - a.abilityAnim / ABILITY_TIME) * Math.PI);
+
   ctx.save();
   ctx.translate(a.x, a.y);
-  ctx.rotate(a.angle || 0);
+  // Stingers whip a half-turn (π radians) at the peak of their ability, so the
+  // rear-mounted stinger swings around to face the target and jab.
+  const spin = (a.type && a.type.stinger) ? rise * Math.PI : 0;
+  ctx.rotate((a.angle || 0) + spin);
 
   // legs first, so the body sits on top of them.
   ctx.strokeStyle = c;
@@ -130,11 +140,6 @@ function drawAnt(a) {
     }
   }
 
-  // Ability rear-up: rise goes 0 → 1 → 0 over the ability animation. The
-  // abdomen swells and pulls back as if the ant is tilting its rear up.
-  let rise = 0;
-  if (a.abilityAnim > 0) rise = Math.sin((1 - a.abilityAnim / ABILITY_TIME) * Math.PI);
-
   // body: three ellipses — head (small, front), thorax, abdomen (big, rear).
   // 3rd number = how much the bite-lunge moves this segment (only the head).
   // 4th number = how much the ability-rise affects it (only the abdomen).
@@ -162,6 +167,19 @@ function drawAnt(a) {
     ctx.fillStyle = "rgba(255,255,255,0.45)";
     ctx.beginPath();
     ctx.arc(glandX - 1 * k, -1 * k, glandR * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (type && type.stinger) {
+    // yellow venom stinger poking out the back (at -x). It juts further out
+    // during the ability, so the spin-and-jab reads as a real stab.
+    const baseX = -11 * k;
+    const tipX = baseX - (3 + rise * 5) * k;   // extends as rise climbs
+    ctx.fillStyle = "#ffe27a";
+    ctx.beginPath();
+    ctx.moveTo(baseX, -1.6 * k);
+    ctx.lineTo(tipX, 0);
+    ctx.lineTo(baseX, 1.6 * k);
+    ctx.closePath();
     ctx.fill();
   }
 
