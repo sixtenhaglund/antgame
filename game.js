@@ -11,6 +11,7 @@ const acidBlobs = [];       // all acid blobs currently in the air
 
 // Spray a fan of acid blobs out of the player's mouth, toward where it aims.
 function spawnAcid() {
+  const scale = player.size / 17;                 // 1.0 for a Major; smaller for Minor
   const mouthX = player.x + Math.cos(player.angle) * player.size * 0.7;
   const mouthY = player.y + Math.sin(player.angle) * player.size * 0.7;
   for (let i = -1; i <= 1; i++) {                 // three blobs in a small fan
@@ -20,7 +21,7 @@ function spawnAcid() {
       vx: Math.cos(a) * ACID_SPEED,
       vy: Math.sin(a) * ACID_SPEED,
       life: ACID_LIFE,
-      r: 2.5 + Math.random() * 1.5,               // slight size variety
+      r: (2.5 + Math.random() * 1.5) * scale,     // blob size scales with the ant
     });
   }
 }
@@ -118,6 +119,9 @@ function startGame(type) {
   player.size = rank.size;         // apply the chosen rank...
   player.radius = rank.radius;
   player.speed = rank.speed;
+  player.maxHp = rank.hp;
+  player.hp = rank.hp;
+  player.dmg = rank.dmg;
   player.type = type;              // ...and the chosen type (for its markings)
   document.getElementById("menu").style.display = "none";  // hide the menu
   gameState = "playing";
@@ -230,7 +234,7 @@ function drawGround() {
 function drawTypeGrid() {
   const rankNames = Object.keys(RANKS);   // the columns
   const colSpacing = 80;
-  const rowSpacing = 95;
+  const rowSpacing = 110;
   const startX = queen.x - ((rankNames.length - 1) * colSpacing) / 2;
   const startY = queen.y + 130;
 
@@ -254,7 +258,14 @@ function drawTypeGrid() {
     // one ant per rank across the row, drawn with this row's type markings
     for (let c = 0; c < rankNames.length; c++) {
       const rank = RANKS[rankNames[c]];
-      drawAnt({ x: startX + c * colSpacing, y, size: rank.size, color: ANT_COLOR, angle: 0, type: ANT_TYPES[r] });
+      const x = startX + c * colSpacing;
+      drawAnt({ x, y, size: rank.size, color: ANT_COLOR, angle: 0, type: ANT_TYPES[r] });
+
+      // stats under each ant: hit points and damage
+      ctx.fillStyle = "#b8a888";
+      ctx.font = "9px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("HP " + rank.hp + "  DMG " + rank.dmg, x, y + rank.size + 16);
     }
   }
 }
