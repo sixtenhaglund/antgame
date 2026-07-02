@@ -30,14 +30,15 @@ const player = {
   dmg: 8,            // bite damage (set from the chosen rank)
   acidDmg: 4,        // acid damage per blob (set from the chosen rank)
   stingDmg: 15,      // venom sting damage (set from the chosen rank)
+  stompDmg: 10,      // ground stomp damage (set from the chosen rank)
   type: null         // which ant type you chose (set from the menu)
 };
 
 // ---- Player ranks: pick one at the start. Bigger = slower but tougher. ----
 const RANKS = {
-  Minor:      { size: 9,  radius: 4,  speed: 3.6, hp: 20, dmg: 4,  acidDmg: 3, stingDmg: 8,  desc: "small & fast" },
-  Major:      { size: 17, radius: 8,  speed: 2.8, hp: 50, dmg: 8,  acidDmg: 4, stingDmg: 15, desc: "balanced" },
-  Supermajor: { size: 26, radius: 13, speed: 2.0, hp: 100, dmg: 15, acidDmg: 5, stingDmg: 25, desc: "big & strong" },
+  Minor:      { size: 9,  radius: 4,  speed: 3.6, hp: 20, dmg: 4,  acidDmg: 3, stingDmg: 8,  stompDmg: 5,  desc: "small & fast" },
+  Major:      { size: 17, radius: 8,  speed: 2.8, hp: 50, dmg: 8,  acidDmg: 4, stingDmg: 15, stompDmg: 10, desc: "balanced" },
+  Supermajor: { size: 26, radius: 13, speed: 2.0, hp: 100, dmg: 15, acidDmg: 5, stingDmg: 25, stompDmg: 18, desc: "big & strong" },
 };
 
 // ---- The ant types (we'll add more here) ----
@@ -47,6 +48,7 @@ const ANT_TYPES = [
   { name: "Basic" },
   { name: "Spitter", spitter: true, ability: "E: spray 3 acid blobs (ranged)", abilityStat: "acidDmg", abilityLabel: "ACID" },
   { name: "Stinger", stinger: true, ability: "E: venom sting (melee)", abilityStat: "stingDmg", abilityLabel: "STING" },
+  { name: "Armoured", armoured: true, hpMult: 1.6, speedMult: 0.8, ability: "E: ground stomp (area)", abilityStat: "stompDmg", abilityLabel: "STOMP" },
 ];
 
 // ---- Stinger jab numbers, shared by drawAnt (the look) and doSting (the hit)
@@ -106,6 +108,11 @@ function drawAnt(a) {
 
   ctx.save();
   ctx.translate(a.x, a.y);
+  // Armoured flexes bigger for a beat as it stomps.
+  if (a.type && a.type.armoured && a.abilityAnim > 0) {
+    const s = 1 + rise * 0.15;
+    ctx.scale(s, s);
+  }
   // Stinger also gives the whole body a twist as it jabs.
   const spin = (a.type && a.type.stinger) ? rise * STING_TWIST : 0;
   ctx.rotate((a.angle || 0) + spin);
@@ -213,6 +220,24 @@ function drawAnt(a) {
     ctx.beginPath();
     ctx.arc(glandX - 1 * k, -1 * k, glandR * 0.35, 0, Math.PI * 2);
     ctx.fill();
+  }
+  if (type && type.armoured) {
+    // dark armor plate covering the back (thorax + abdomen).
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.beginPath();
+    ctx.ellipse(-4 * k, 0, 9 * k, 6 * k, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#2a2a2a";
+    ctx.lineWidth = 1.2 * k;
+    ctx.stroke();
+    // two light ridge lines across the plate, for a plated look.
+    ctx.strokeStyle = "rgba(255,255,255,0.18)";
+    ctx.lineWidth = 1 * k;
+    for (const rx of [-8, -2]) {
+      ctx.beginPath();
+      ctx.arc(rx * k, 0, 3.5 * k, -0.9, 0.9);
+      ctx.stroke();
+    }
   }
 
   // curved jaws poking out the front of the head — they ride along with the
