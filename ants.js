@@ -45,8 +45,8 @@ const RANKS = {
 // just a name for now. Later types can differ by color, jaws, abilities, etc.
 const ANT_TYPES = [
   { name: "Basic" },
-  { name: "Spitter", spitter: true, ability: "E: spray acid (ranged)" },
-  { name: "Stinger", stinger: true, ability: "E: venom sting (melee, big hit)" },
+  { name: "Spitter", spitter: true, ability: "E: spray 3 acid blobs (ranged)", abilityStat: "acidDmg", abilityLabel: "ACID" },
+  { name: "Stinger", stinger: true, ability: "E: venom sting (melee)", abilityStat: "stingDmg", abilityLabel: "STING" },
 ];
 
 // ---- Curved mandibles (jaws), shared by the worker and the queen ----

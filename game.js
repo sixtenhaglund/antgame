@@ -424,11 +424,16 @@ function drawTypeGrid() {
       const x = startX + c * colSpacing;
       drawAnt({ x, y, size: rank.size, color: ANT_COLOR, angle: 0, type: ANT_TYPES[r] });
 
-      // stats under each ant: hit points and damage
+      // stats under each ant: hit points and bite damage
       ctx.fillStyle = "#b8a888";
       ctx.font = "9px monospace";
       ctx.textAlign = "center";
       ctx.fillText("HP " + rank.hp + "  DMG " + rank.dmg, x, y + rank.size + 16);
+      // ability damage for this rank, if the type has an ability
+      if (type.abilityStat) {
+        ctx.fillStyle = "#aef25a";
+        ctx.fillText(type.abilityLabel + " " + rank[type.abilityStat], x, y + rank.size + 27);
+      }
     }
   }
 }
