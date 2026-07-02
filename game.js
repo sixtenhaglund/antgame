@@ -275,7 +275,7 @@ function startGame(type) {
   player.speed = (type.speed && type.speed[chosenRank]) || rank.speed;
   player.maxHp = (type.hp && type.hp[chosenRank]) || rank.hp;
   player.hp = player.maxHp;
-  player.dmg = rank.dmg;
+  player.dmg = (type.dmg && type.dmg[chosenRank]) || rank.dmg;   // type may weaken bite
   player.acidDmg = rank.acidDmg;
   player.stingDmg = rank.stingDmg;
   player.color = type.color || ANT_COLOR;   // some types recolor the body
@@ -448,11 +448,12 @@ function drawTypeGrid() {
 
       // stats under each ant: HP (type may override per rank), bite dmg, speed
       const hp = (type.hp && type.hp[rankNames[c]]) || rank.hp;
+      const dmg = (type.dmg && type.dmg[rankNames[c]]) || rank.dmg;
       const spd = ((type.speed && type.speed[rankNames[c]]) || rank.speed).toFixed(1);
       ctx.fillStyle = "#b8a888";
       ctx.font = "9px monospace";
       ctx.textAlign = "center";
-      ctx.fillText("HP " + hp + "  DMG " + rank.dmg, x, y + rank.size + 16);
+      ctx.fillText("HP " + hp + "  DMG " + dmg, x, y + rank.size + 16);
       ctx.fillText("SPD " + spd, x, y + rank.size + 27);
       // ability damage for this rank, if the type has an ability
       if (type.abilityStat) {
