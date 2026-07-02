@@ -67,10 +67,11 @@ function updateNets() {
     const net = nets[i];
     if (!net.trapped) {
       // armed: catch the first enemy that steps into the web.
-      for (const d of dummies) {
-        if (d.hp <= 0) continue;
-        if (Math.hypot(net.x - d.x, net.y - d.y) < net.r + d.radius) {
-          net.trapped = d;
+      // (No enemies yet — this loop will check the enemy list once it exists.)
+      for (const e of enemies) {
+        if (e.hp <= 0) continue;
+        if (Math.hypot(net.x - e.x, net.y - e.y) < net.r + e.radius) {
+          net.trapped = e;
           net.timer = SLOW_TIME;
           break;
         }
@@ -136,14 +137,8 @@ function stingerTipPos() {
 function doSting() {
   const tip = stingerTipPos();
   const hitR = player.size * 0.9;   // small hitbox around the stinger tip
-  for (const d of dummies) {
-    if (d.hp <= 0) continue;
-    if (Math.hypot(tip.x - d.x, tip.y - d.y) < d.radius + hitR) {
-      hurtDummy(d, player.stingDmg);
-      spawnSplash(tip.x, tip.y, "220,60,50");   // red particles at the stinger tip
-    }
-  }
   hitFoodBlocks(tip.x, tip.y, hitR, player.stingDmg);   // can break food blocks
+  hitRocks(tip.x, tip.y, hitR, player.stingDmg);        // and rocks
 }
 
 // ---- Splash: tiny droplets that burst out where an attack lands ----
@@ -194,23 +189,21 @@ function updateAcid() {
     b.vy *= 0.95;
     b.life--;
 
-    // did this blob hit a dummy? (circle vs circle)
+    // did this blob hit a food block or a rock? (circle vs circle)
     let hit = false;
-    for (const d of dummies) {
-      if (d.hp <= 0) continue;
-      if (Math.hypot(b.x - d.x, b.y - d.y) < d.radius + b.r) {
-        hurtDummy(d, b.dmg);
-        spawnSplash(b.x, b.y);   // tiny splash where it lands
+    for (const fb of foodBlocks) {
+      if (fb.broken) continue;
+      if (Math.hypot(b.x - fb.x, b.y - fb.y) < fb.size + b.r) {
+        hitFoodBlocks(b.x, b.y, b.r, b.dmg);
         hit = true;
         break;
       }
     }
-    // or a food block?
     if (!hit) {
-      for (const fb of foodBlocks) {
-        if (fb.broken) continue;
-        if (Math.hypot(b.x - fb.x, b.y - fb.y) < fb.size + b.r) {
-          hitFoodBlocks(b.x, b.y, b.r, b.dmg);
+      for (const r of rocks) {
+        if (r.broken) continue;
+        if (Math.hypot(b.x - r.x, b.y - r.y) < r.size + b.r) {
+          hitRocks(b.x, b.y, b.r, b.dmg);
           hit = true;
           break;
         }
@@ -277,6 +270,9 @@ const nests = [
 for (const n of nests) {
   n.queen = { x: n.x, y: n.y, size: 26, radius: 22, color: n.color, angle: 0 };
 }
+
+// Enemy ants will live here later; empty for now so attacks/nets have a list.
+const enemies = [];
 
 // Put the player at one nest — that becomes their colony.
 function spawnAtNest(i) {
@@ -370,81 +366,55 @@ function drawFood() {
   }
 }
 
-// ---- Test dummies: one per rank, to practice attacks on ----
-const dummies = [];
-function placeDummies() {
-  const names = Object.keys(RANKS);
-  const spacing = 95;
-  const startX = WORLD / 2 - ((names.length - 1) * spacing) / 2;
-  for (let i = 0; i < names.length; i++) {
-    const rank = RANKS[names[i]];
-    dummies.push({
-      x: startX + i * spacing,
-      y: WORLD / 2 - 240,        // near the middle of the map
-      size: rank.size,
-      radius: rank.radius,
-      hp: rank.hp,
-      maxHp: rank.hp,
-      name: names[i],
-      angle: Math.PI / 2,        // facing down, toward where you approach from
-      respawn: 0,                // frames until it comes back after dying
-      slowed: false,             // caught in a Weaver net?
-    });
-  }
-}
-
-// Hurt a dummy; if it dies, start its respawn countdown.
-function hurtDummy(d, amount) {
-  d.hp -= amount;
-  if (d.hp <= 0) {
-    d.hp = 0;
-    d.respawn = 90;   // ~1.5 seconds, then back to full
-  }
-}
-
-function updateDummies() {
-  for (const d of dummies) {
-    if (d.hp <= 0 && d.respawn > 0) {
-      d.respawn--;
-      if (d.respawn === 0) d.hp = d.maxHp;   // revive
+// ---- Breakable rocks: obstacles you smash through (like the first game) ----
+const rocks = [];
+function placeRocks() {
+  rocks.length = 0;
+  const step = 480;
+  for (let x = step; x < WORLD; x += step) {
+    for (let y = step; y < WORLD; y += step) {
+      // skip anything too close to a nest, so colonies aren't walled in
+      let nearNest = false;
+      for (const n of nests) {
+        if (Math.hypot(x - n.x, y - n.y) < 360) nearNest = true;
+      }
+      if (nearNest) continue;
+      rocks.push({ x, y, size: 20, radius: 20, hp: 16, maxHp: 16, broken: false });
     }
   }
 }
 
-function drawDummies() {
-  for (const d of dummies) {
-    if (d.hp <= 0) {
-      // faint circle where it's respawning
-      ctx.fillStyle = "rgba(140,140,140,0.25)";
-      ctx.beginPath();
-      ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
-      ctx.fill();
-      continue;
+// Damage any rock near a hit point; smash it once its HP hits 0.
+function hitRocks(hx, hy, reach, amount) {
+  for (const r of rocks) {
+    if (r.broken) continue;
+    if (Math.hypot(hx - r.x, hy - r.y) < reach + r.size) {
+      r.hp -= amount;
+      spawnSplash(hx, hy, "150,150,155");   // grey chips
+      if (r.hp <= 0) {
+        r.broken = true;
+        spawnSplash(r.x, r.y, "120,120,125");
+      }
     }
-    // draw the dummy in a reddish tint so it reads as a target
-    drawAnt({ x: d.x, y: d.y, size: d.size, color: "#8a4a3a", angle: d.angle });
+  }
+}
 
-    // cyan glow while slowed (caught in a net)
-    if (d.slowed) {
-      ctx.fillStyle = "rgba(120,220,235,0.3)";
-      ctx.beginPath();
-      ctx.arc(d.x, d.y, d.radius + 4, 0, Math.PI * 2);
-      ctx.fill();
+function drawRocks() {
+  for (const r of rocks) {
+    if (r.broken) continue;
+    const s = r.size;
+    ctx.fillStyle = "#6b6b70";
+    ctx.fillRect(r.x - s, r.y - s, s * 2, s * 2);
+    ctx.strokeStyle = "#3f3f45";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(r.x - s, r.y - s, s * 2, s * 2);
+    // damage bar once it's been hit
+    if (r.hp < r.maxHp) {
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.fillRect(r.x - s, r.y - s - 6, s * 2, 3);
+      ctx.fillStyle = "#d0d0d0";
+      ctx.fillRect(r.x - s, r.y - s - 6, s * 2 * (r.hp / r.maxHp), 3);
     }
-
-    // health bar above it
-    const w = d.size * 2.4;
-    const bx = d.x - w / 2;
-    const by = d.y - d.size - 14;
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.fillRect(bx, by, w, 4);
-    ctx.fillStyle = "#5ad25a";
-    ctx.fillRect(bx, by, w * (d.hp / d.maxHp), 4);
-    // label with numbers
-    ctx.fillStyle = "#e8dcc0";
-    ctx.font = "9px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(d.name + "  " + Math.ceil(d.hp) + "/" + d.maxHp, d.x, by - 3);
   }
 }
 
@@ -552,10 +522,10 @@ function update() {
   if (keys["a"] || keys["arrowleft"])  player.x -= player.speed;
   if (keys["d"] || keys["arrowright"]) player.x += player.speed;
 
-  // Collide with every queen and living dummy (their hitboxes).
+  // Collide with every queen and unbroken rock (their hitboxes).
   for (const n of nests) keepApart(player, n.queen);
-  for (const d of dummies) {
-    if (d.hp > 0) keepApart(player, d);
+  for (const r of rocks) {
+    if (!r.broken) keepApart(player, r);   // rocks block your path until smashed
   }
 
   // Stay inside the world bounds.
@@ -577,23 +547,15 @@ function update() {
     player.biteCooldown = BITE_TIME + BITE_COOLDOWN;
   }
   // The bite lands partway through the animation (during the charge). At that
-  // frame, damage any dummy right in front of the mouth.
+  // frame, damage anything right in front of the mouth.
   if (player.biteAnim === 12) {
     const mx = player.x + Math.cos(player.angle) * player.size * 1.2;
     const my = player.y + Math.sin(player.angle) * player.size * 1.2;
-    for (const d of dummies) {
-      if (d.hp <= 0) continue;
-      if (Math.hypot(mx - d.x, my - d.y) < d.radius + player.size * 0.9) {
-        hurtDummy(d, player.dmg);
-        spawnSplash(mx, my, "220,60,50");   // red particles at the mouth
-      }
-    }
     hitFoodBlocks(mx, my, player.size * 0.9, player.dmg);   // can break food blocks
+    hitRocks(mx, my, player.size * 0.9, player.dmg);        // and rocks
   }
   if (player.biteAnim > 0) player.biteAnim--;
   if (player.biteCooldown > 0) player.biteCooldown--;
-
-  updateDummies();
 
   // Ability (E key): any type that has one can start its ability animation.
   const hasAbility = player.type && (player.type.spitter || player.type.stinger || player.type.weaver);
@@ -760,7 +722,7 @@ function draw() {
   drawWorldBorder();
   drawFood();
   drawColonyNests();  // the four corner nests + queens
-  drawDummies();   // practice targets
+  drawRocks();     // breakable obstacle blocks
   drawNetPreview();// red hologram of where a Weaver's net will land
   drawNets();      // net traps (drawn over the trapped enemy)
   drawAcid();      // under the ant, so the head hides where it spawns
@@ -781,5 +743,5 @@ function loop() {
   draw();
   requestAnimationFrame(loop);   // ask the browser to run loop() again next frame
 }
-placeDummies();   // after the dummies array + queen position both exist
+placeRocks();     // scatter the breakable rocks across the map
 loop();
