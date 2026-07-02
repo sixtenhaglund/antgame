@@ -51,7 +51,7 @@ const ANT_TYPES = [
   { name: "Armored", armored: true, color: "#3a2410", ability: "tanky: +HP, no ability",
     hp:    { Minor: 35,  Major: 80, Supermajor: 200 },   // explicit HP per rank
     speed: { Minor: 2.5, Major: 2,  Supermajor: 1 } },   // explicit speed per rank
-  { name: "Weaver", weaver: true, ability: "E: set a net trap (stuns 4s)" },
+  { name: "Weaver", weaver: true, ability: "E: set a net trap (slows 4s)" },
 ];
 
 // ---- Stinger jab numbers, shared by drawAnt (the look) and doSting (the hit)

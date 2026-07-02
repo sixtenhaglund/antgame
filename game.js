@@ -27,16 +27,17 @@ function spawnAcid() {
   }
 }
 
-// ---- The Weaver's net trap: stuns the first enemy that walks through ----
-const STUN_TIME = 240;   // 4 seconds at 60fps
+// ---- The Weaver's net trap: SLOWS the first enemy that walks through ----
+const SLOW_TIME = 240;   // 4 seconds at 60fps
 const nets = [];
 
 function doWeave() {
   // drop a net a bit in front of the Weaver, where it's aiming.
+  // The net is bigger on higher ranks (player.size grows with rank).
   const dist = player.size * 3;
   const nx = player.x + Math.cos(player.angle) * dist;
   const ny = player.y + Math.sin(player.angle) * dist;
-  nets.push({ x: nx, y: ny, r: player.size * 1.4, trapped: null, timer: 0 });
+  nets.push({ x: nx, y: ny, r: player.size * 1.6, trapped: null, timer: 0 });
   spawnSplash(nx, ny, "230,235,250");   // a little puff of silk
 }
 
@@ -44,23 +45,23 @@ function updateNets() {
   for (let i = nets.length - 1; i >= 0; i--) {
     const net = nets[i];
     if (!net.trapped) {
-      // armed: trap the first enemy that steps into the web.
+      // armed: catch the first enemy that steps into the web.
       for (const d of dummies) {
         if (d.hp <= 0) continue;
         if (Math.hypot(net.x - d.x, net.y - d.y) < net.r + d.radius) {
           net.trapped = d;
-          net.timer = STUN_TIME;
+          net.timer = SLOW_TIME;
           break;
         }
       }
     } else {
-      // holding an enemy: keep it stunned until the timer runs out (it escapes)
+      // holding an enemy: keep it slowed until the timer runs out (it escapes)
       // or it dies — then the net breaks (single use).
-      net.trapped.stunned = true;
+      net.trapped.slowed = true;
       net.timer--;
       if (net.timer <= 0 || net.trapped.hp <= 0) {
-        net.trapped.stunned = false;   // it escapes
-        nets.splice(i, 1);             // net breaks
+        net.trapped.slowed = false;   // it escapes
+        nets.splice(i, 1);            // net breaks
       }
     }
   }
@@ -241,7 +242,7 @@ function placeDummies() {
       name: names[i],
       angle: Math.PI / 2,        // facing down, toward where you approach from
       respawn: 0,                // frames until it comes back after dying
-      stunned: false,            // caught in a Weaver net?
+      slowed: false,             // caught in a Weaver net?
     });
   }
 }
@@ -277,9 +278,9 @@ function drawDummies() {
     // draw the dummy in a reddish tint so it reads as a target
     drawAnt({ x: d.x, y: d.y, size: d.size, color: "#8a4a3a", angle: d.angle });
 
-    // blue glow while stunned (caught in a net)
-    if (d.stunned) {
-      ctx.fillStyle = "rgba(120,180,255,0.3)";
+    // cyan glow while slowed (caught in a net)
+    if (d.slowed) {
+      ctx.fillStyle = "rgba(120,220,235,0.3)";
       ctx.beginPath();
       ctx.arc(d.x, d.y, d.radius + 4, 0, Math.PI * 2);
       ctx.fill();
