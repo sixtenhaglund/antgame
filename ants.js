@@ -97,9 +97,8 @@ function drawAnt(a) {
 
   ctx.save();
   ctx.translate(a.x, a.y);
-  // Stingers whip a half-turn (π radians) at the peak of their ability, so the
-  // rear-mounted stinger swings around to face the target and jab.
-  const spin = (a.type && a.type.stinger) ? rise * Math.PI : 0;
+  // Stingers turn a quarter-turn (90°) as they arch and jab.
+  const spin = (a.type && a.type.stinger) ? rise * (Math.PI / 2) : 0;
   ctx.rotate((a.angle || 0) + spin);
 
   // legs first, so the body sits on top of them.
@@ -174,17 +173,15 @@ function drawAnt(a) {
     ctx.fill();
   }
   if (type && type.stinger) {
-    // yellow venom stinger poking out the back (at -x). It's long, juts even
-    // further during the ability, and curves along with the arched abdomen.
+    // yellow venom stinger poking straight out the back (at -x). Fixed length,
+    // straight — it just rides along with the arched abdomen (baseY).
     const baseX = -11 * k, baseY = curl * k;
-    const tipX = baseX - (6 + rise * 9) * k;   // longer; extends as rise climbs
-    const tipY = curl * 2.2 * k;               // tip swings aside with the arch
-    const midX = (baseX + tipX) / 2, midY = (baseY + tipY) / 2;
+    const tipX = baseX - 7 * k;                // fixed length
     ctx.fillStyle = "#ffe27a";
     ctx.beginPath();
     ctx.moveTo(baseX, baseY - 1.6 * k);
-    ctx.quadraticCurveTo(midX, midY - 2 * k, tipX, tipY);   // curved outer edge to the point
-    ctx.quadraticCurveTo(midX, midY + 1 * k, baseX, baseY + 1.6 * k);
+    ctx.lineTo(tipX, baseY);
+    ctx.lineTo(baseX, baseY + 1.6 * k);
     ctx.closePath();
     ctx.fill();
   }
