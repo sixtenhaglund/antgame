@@ -245,12 +245,12 @@ let ctx = canvas.getContext("2d");   // "2d" = the toolbox for drawing shapes
 // Render one ant (with its type markings) onto a small canvas for a menu icon.
 function makeAntIcon(type, size) {
   const c = document.createElement("canvas");
-  c.width = 52;
-  c.height = 52;
+  c.width = 68;
+  c.height = 68;
   c.className = "icon";
   const prev = ctx;
   ctx = c.getContext("2d");
-  ctx.translate(26, 26);         // draw around the icon's center
+  ctx.translate(34, 34);         // draw around the icon's center
   drawAnt({ x: 0, y: 0, size: size, color: (type && type.color) || ANT_COLOR, angle: -Math.PI / 2, type: type || null });
   ctx = prev;                    // point ctx back at the screen
   return c;
@@ -531,8 +531,11 @@ function update() {
   if (keys["a"] || keys["arrowleft"])  player.x -= player.speed;
   if (keys["d"] || keys["arrowright"]) player.x += player.speed;
 
-  // Stop the player from walking through the queen.
+  // Stop the player from walking through the queen or any dummy (their hitboxes).
   keepApart(player, queen);
+  for (const d of dummies) {
+    if (d.hp > 0) keepApart(player, d);
+  }
 
   // update food blocks (respawn) and pick up any morsels we're standing on
   updateFood();

@@ -60,15 +60,15 @@ canvas {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  width: 130px;
-  padding: 16px 10px;
+  gap: 10px;
+  width: 170px;
+  padding: 24px 16px;
   font-family: monospace;
   color: #e8dcc0;
   cursor: pointer;
   background: linear-gradient(#41301a, #2a1e10);
   border: 2px solid #5a3a1e;
-  border-radius: 14px;
+  border-radius: 16px;
   transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
 }
 #ranks button:hover, #types button:hover {
@@ -77,19 +77,19 @@ canvas {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
 }
 #ranks button .name, #types button .name {
-  font-size: 16px;
+  font-size: 19px;
   font-weight: bold;
   letter-spacing: 1px;
 }
 #ranks button small, #types button small {
   opacity: 0.7;
-  font-size: 10px;
-  line-height: 1.3;
+  font-size: 11px;
+  line-height: 1.35;
 }
 canvas.icon {
   /* the little ant portrait rendered into each card */
-  width: 52px;
-  height: 52px;
+  width: 68px;
+  height: 68px;
 }
 #backBtn {
   font-family: monospace;
