@@ -30,15 +30,14 @@ const player = {
   dmg: 8,            // bite damage (set from the chosen rank)
   acidDmg: 4,        // acid damage per blob (set from the chosen rank)
   stingDmg: 15,      // venom sting damage (set from the chosen rank)
-  stompDmg: 10,      // ground stomp damage (set from the chosen rank)
   type: null         // which ant type you chose (set from the menu)
 };
 
 // ---- Player ranks: pick one at the start. Bigger = slower but tougher. ----
 const RANKS = {
-  Minor:      { size: 9,  radius: 4,  speed: 3.6, hp: 20, dmg: 4,  acidDmg: 3, stingDmg: 8,  stompDmg: 5,  desc: "small & fast" },
-  Major:      { size: 17, radius: 8,  speed: 2.8, hp: 50, dmg: 8,  acidDmg: 4, stingDmg: 15, stompDmg: 10, desc: "balanced" },
-  Supermajor: { size: 26, radius: 13, speed: 2.0, hp: 100, dmg: 15, acidDmg: 5, stingDmg: 25, stompDmg: 18, desc: "big & strong" },
+  Minor:      { size: 9,  radius: 4,  speed: 3.6, hp: 20, dmg: 4,  acidDmg: 3, stingDmg: 8,  desc: "small & fast" },
+  Major:      { size: 17, radius: 8,  speed: 2.8, hp: 50, dmg: 8,  acidDmg: 4, stingDmg: 15, desc: "balanced" },
+  Supermajor: { size: 26, radius: 13, speed: 2.0, hp: 100, dmg: 15, acidDmg: 5, stingDmg: 25, desc: "big & strong" },
 };
 
 // ---- The ant types (we'll add more here) ----
@@ -48,7 +47,7 @@ const ANT_TYPES = [
   { name: "Basic" },
   { name: "Spitter", spitter: true, ability: "E: spray 3 acid blobs (ranged)", abilityStat: "acidDmg", abilityLabel: "ACID" },
   { name: "Stinger", stinger: true, ability: "E: venom sting (melee)", abilityStat: "stingDmg", abilityLabel: "STING" },
-  { name: "Armoured", armoured: true, hpMult: 1.6, speedMult: 0.8, ability: "E: ground stomp (area)", abilityStat: "stompDmg", abilityLabel: "STOMP" },
+  { name: "Armoured", armoured: true, hpMult: 1.6, speedMult: 0.8, ability: "tanky: +HP, no ability" },
 ];
 
 // ---- Stinger jab numbers, shared by drawAnt (the look) and doSting (the hit)
@@ -108,11 +107,6 @@ function drawAnt(a) {
 
   ctx.save();
   ctx.translate(a.x, a.y);
-  // Armoured flexes bigger for a beat as it stomps.
-  if (a.type && a.type.armoured && a.abilityAnim > 0) {
-    const s = 1 + rise * 0.15;
-    ctx.scale(s, s);
-  }
   // Stinger also gives the whole body a twist as it jabs.
   const spin = (a.type && a.type.stinger) ? rise * STING_TWIST : 0;
   ctx.rotate((a.angle || 0) + spin);

@@ -27,39 +27,6 @@ function spawnAcid() {
   }
 }
 
-// ---- The Armoured's stomp: expanding shockwave ring that hits all around ----
-const shockwaves = [];
-function spawnShock(x, y, maxR) {
-  shockwaves.push({ x, y, maxR, life: 16, maxLife: 16 });
-}
-function updateShock() {
-  for (let i = shockwaves.length - 1; i >= 0; i--) {
-    shockwaves[i].life--;
-    if (shockwaves[i].life <= 0) shockwaves.splice(i, 1);
-  }
-}
-function drawShock() {
-  for (const s of shockwaves) {
-    const p = 1 - s.life / s.maxLife;          // 0 → 1 as it expands
-    ctx.strokeStyle = "rgba(210,210,220," + (s.life / s.maxLife) + ")";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.maxR * p, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-}
-function doStomp() {
-  const R = player.size * 3.5;                 // reach of the shockwave
-  spawnShock(player.x, player.y, R);
-  for (const d of dummies) {
-    if (d.hp <= 0) continue;
-    if (Math.hypot(player.x - d.x, player.y - d.y) < R + d.radius) {
-      hurtDummy(d, player.stompDmg);
-      spawnSplash(d.x, d.y, "220,60,50");
-    }
-  }
-}
-
 // ---- The Stinger's sting: damage lands right on the stinger tip ----
 // We replay the same transforms drawAnt uses (body twist, then tail curl about
 // its pivot) to find where the tip actually is in the world.
@@ -311,7 +278,6 @@ function startGame(type) {
   player.dmg = rank.dmg;
   player.acidDmg = rank.acidDmg;
   player.stingDmg = rank.stingDmg;
-  player.stompDmg = rank.stompDmg;
   player.type = type;              // ...and the chosen type (for its markings)
   document.getElementById("menu").style.display = "none";  // hide the menu
   gameState = "playing";
@@ -382,7 +348,7 @@ function update() {
   updateDummies();
 
   // Ability (E key): any type that has one can start its ability animation.
-  const hasAbility = player.type && (player.type.spitter || player.type.stinger || player.type.armoured);
+  const hasAbility = player.type && (player.type.spitter || player.type.stinger);
   if (keys["e"] && player.abilityCooldown <= 0 && player.abilityAnim <= 0 && hasAbility) {
     player.abilityAnim = ABILITY_TIME;
     player.abilityCooldown = ABILITY_TIME + ABILITY_COOLDOWN;
@@ -392,7 +358,6 @@ function update() {
   if (player.abilityAnim === SHOOT_FRAME) {
     if (player.type.spitter) spawnAcid();
     else if (player.type.stinger) doSting();
-    else if (player.type.armoured) doStomp();
   }
   if (player.abilityAnim > 0) player.abilityAnim--;
   if (player.abilityCooldown > 0) player.abilityCooldown--;
@@ -400,7 +365,6 @@ function update() {
   // Move the acid blobs that are in the air, and any splash droplets.
   updateAcid();
   updateSplash();
-  updateShock();
 }
 
 // ---- Circle collision: if `a` overlaps `b`, push `a` out to b's edge ----
@@ -515,7 +479,6 @@ function draw() {
   drawGround();
   drawQueen(queen);
   drawTypeGrid();  // TEMP: the type × rank grid
-  drawShock();     // stomp shockwave rings (on the ground)
   drawDummies();   // practice targets
   drawAcid();      // under the ant, so the head hides where it spawns
   drawAnt(player);
