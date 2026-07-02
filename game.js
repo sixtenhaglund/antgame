@@ -1,4 +1,5 @@
-const BITE_TIME = 22;   // how many frames one bite lasts (wind-up + charge + recover)
+const BITE_TIME = 22;       // how many frames one bite lasts (wind-up + charge + recover)
+const BITE_COOLDOWN = 45;   // extra frames you must wait after a bite before biting again
 
 // ---- Canvas: our drawing surface ----
 const canvas = document.getElementById("game");
@@ -59,10 +60,14 @@ function update() {
   player.moving = (player.x !== startX || player.y !== startY);
   if (player.moving) player.walkPhase += 0.35;
 
-  // Biting animation: click to start a bite (if not already mid-bite),
-  // then count the timer down to zero each frame.
-  if (mouse.down && player.biteAnim <= 0) player.biteAnim = BITE_TIME;
+  // Biting: click to start a bite, but only if we're not mid-bite AND the
+  // cooldown has run out. Starting a bite refills the cooldown timer.
+  if (mouse.down && player.biteAnim <= 0 && player.biteCooldown <= 0) {
+    player.biteAnim = BITE_TIME;
+    player.biteCooldown = BITE_TIME + BITE_COOLDOWN;
+  }
   if (player.biteAnim > 0) player.biteAnim--;
+  if (player.biteCooldown > 0) player.biteCooldown--;
 }
 
 // ---- Circle collision: if `a` overlaps `b`, push `a` out to b's edge ----

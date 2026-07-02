@@ -22,7 +22,8 @@ const player = {
   angle: 0,          // direction the ant faces, in radians
   walkPhase: 0,      // counts up while walking; drives the leg swing
   moving: false,     // did it move this frame?
-  biteAnim: 0        // counts down during a bite (0 = not biting)
+  biteAnim: 0,       // counts down during a bite (0 = not biting)
+  biteCooldown: 0    // counts down after a bite before you can bite again
 };
 
 // ---- Curved mandibles (jaws), shared by the worker and the queen ----
