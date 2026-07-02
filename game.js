@@ -4,6 +4,7 @@ const BITE_COOLDOWN = 45;   // extra frames you must wait after a bite before bi
 // ---- Acid spray (Spitter ability) ----
 const ACID_SPEED = 7;        // how fast blobs fly
 const ACID_LIFE = 38;        // frames a blob lives before fading
+const ACID_DMG = 1;          // damage each acid blob deals on a hit
 const ABILITY_COOLDOWN = 30; // frames between acid sprays
 const ABILITY_TIME = 26;     // length of the rear-up-and-shoot animation
 const SHOOT_FRAME = 9;       // the frame within it where the acid fires (later = smaller)
@@ -22,6 +23,7 @@ function spawnAcid() {
       vy: Math.sin(a) * ACID_SPEED,
       life: ACID_LIFE,
       r: (2.5 + Math.random() * 1.5) * scale,     // blob size scales with the ant
+      dmg: ACID_DMG,                              // damage this blob deals on a hit
     });
   }
 }
