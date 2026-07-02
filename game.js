@@ -370,16 +370,20 @@ function drawFood() {
 const rocks = [];
 function placeRocks() {
   rocks.length = 0;
-  const step = 480;
-  for (let x = step; x < WORLD; x += step) {
-    for (let y = step; y < WORLD; y += step) {
-      // skip anything too close to a nest, so colonies aren't walled in
-      let nearNest = false;
+  const s = 26, step = 52;   // tile half-size and grid spacing (tiles = 52px)
+  for (let x = step / 2; x < WORLD; x += step) {
+    for (let y = step / 2; y < WORLD; y += step) {
+      // leave a clear plaza around each nest
+      let clear = false;
       for (const n of nests) {
-        if (Math.hypot(x - n.x, y - n.y) < 360) nearNest = true;
+        if (Math.hypot(x - n.x, y - n.y) < 240) clear = true;
       }
-      if (nearNest) continue;
-      rocks.push({ x, y, size: 20, radius: 20, hp: 16, maxHp: 16, broken: false });
+      // and don't bury the food blocks
+      for (const fb of foodBlocks) {
+        if (Math.hypot(x - fb.x, y - fb.y) < 50) clear = true;
+      }
+      if (clear) continue;
+      rocks.push({ x, y, size: s, radius: s, hp: 12, maxHp: 12, broken: false });
     }
   }
 }
@@ -400,8 +404,13 @@ function hitRocks(hx, hy, reach, amount) {
 }
 
 function drawRocks() {
+  // only draw the tiles inside the camera view (there are thousands total)
+  const halfW = canvas.width / 2 / zoom, halfH = canvas.height / 2 / zoom;
+  const left = player.x - halfW - 30, right = player.x + halfW + 30;
+  const top = player.y - halfH - 30, bottom = player.y + halfH + 30;
   for (const r of rocks) {
     if (r.broken) continue;
+    if (r.x < left || r.x > right || r.y < top || r.y > bottom) continue;
     const s = r.size;
     ctx.fillStyle = "#6b6b70";
     ctx.fillRect(r.x - s, r.y - s, s * 2, s * 2);
@@ -525,7 +534,10 @@ function update() {
   // Collide with every queen and unbroken rock (their hitboxes).
   for (const n of nests) keepApart(player, n.queen);
   for (const r of rocks) {
-    if (!r.broken) keepApart(player, r);   // rocks block your path until smashed
+    if (r.broken) continue;
+    // cheap skip of far rocks before the real collision test
+    if (Math.abs(r.x - player.x) > 60 || Math.abs(r.y - player.y) > 60) continue;
+    keepApart(player, r);   // rocks block your path until smashed
   }
 
   // Stay inside the world bounds.
