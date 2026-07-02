@@ -20,7 +20,7 @@ canvas {
   display: block;           /* removes the tiny gap under the canvas */
 }
 
-/* ---- Rank-select menu overlay ---- */
+/* ---- Rank / type select menu overlay ---- */
 #menu {
   position: fixed;
   inset: 0;                 /* cover the whole screen (top/right/bottom/left = 0) */
@@ -28,50 +28,80 @@ canvas {
   flex-direction: column;   /* stack title, subtitle, buttons vertically */
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  background: rgba(10, 8, 4, 0.85);
+  gap: 22px;
+  /* warm soil-colored glow in the middle, fading to near-black at the edges */
+  background: radial-gradient(circle at center, rgba(48, 33, 15, 0.92), rgba(8, 6, 3, 0.97));
   z-index: 10;              /* sit on top of the canvas */
 }
 #menu h1 {
   margin: 0;
-  letter-spacing: 5px;
+  font-size: 44px;
+  letter-spacing: 10px;
+  color: #f0d9a8;
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.7);
+}
+#menu p {
+  margin: 0;
+  opacity: 0.75;
+  letter-spacing: 2px;
 }
 #step1, #step2 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 18px;
 }
 #ranks, #types {
   display: flex;
-  gap: 16px;                /* space between the buttons */
+  gap: 18px;                /* space between the cards */
 }
+/* each choice is a card: icon on top, name, then description */
 #ranks button, #types button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 130px;
+  padding: 16px 10px;
   font-family: monospace;
-  font-size: 16px;
-  padding: 14px 20px;
-  cursor: pointer;
-  background: #3a2a15;
   color: #e8dcc0;
+  cursor: pointer;
+  background: linear-gradient(#41301a, #2a1e10);
   border: 2px solid #5a3a1e;
-  border-radius: 8px;
+  border-radius: 14px;
+  transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
 }
 #ranks button:hover, #types button:hover {
-  background: #5a3a1e;
+  transform: translateY(-4px);          /* lift on hover */
+  border-color: #d09a52;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
 }
-#ranks button small {
-  display: block;           /* description on its own line under the name */
+#ranks button .name, #types button .name {
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+#ranks button small, #types button small {
   opacity: 0.7;
-  font-size: 11px;
-  margin-top: 4px;
+  font-size: 10px;
+  line-height: 1.3;
+}
+canvas.icon {
+  /* the little ant portrait rendered into each card */
+  width: 52px;
+  height: 52px;
 }
 #backBtn {
   font-family: monospace;
   font-size: 12px;
-  padding: 6px 12px;
+  padding: 7px 14px;
   cursor: pointer;
   background: none;
   color: #b8a888;
   border: 1px solid #5a3a1e;
   border-radius: 6px;
+}
+#backBtn:hover {
+  color: #e8dcc0;
+  border-color: #d09a52;
 }

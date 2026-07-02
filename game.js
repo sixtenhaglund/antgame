@@ -226,7 +226,23 @@ function drawAcid() {
 
 // ---- Canvas: our drawing surface ----
 const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");   // "2d" = the toolbox for drawing shapes
+// `let` (not const) so we can briefly point it at a small off-screen canvas to
+// render the menu icons, then point it back at the screen.
+let ctx = canvas.getContext("2d");   // "2d" = the toolbox for drawing shapes
+
+// Render one ant (with its type markings) onto a small canvas for a menu icon.
+function makeAntIcon(type, size) {
+  const c = document.createElement("canvas");
+  c.width = 52;
+  c.height = 52;
+  c.className = "icon";
+  const prev = ctx;
+  ctx = c.getContext("2d");
+  ctx.translate(26, 26);         // draw around the icon's center
+  drawAnt({ x: 0, y: 0, size: size, color: (type && type.color) || ANT_COLOR, angle: -Math.PI / 2, type: type || null });
+  ctx = prev;                    // point ctx back at the screen
+  return c;
+}
 
 // Fill the whole window, and keep filling when the window resizes.
 function resize() {
@@ -348,23 +364,36 @@ let chosenRank = null;   // remembered between step 1 and step 2
 const step1 = document.getElementById("step1");
 const step2 = document.getElementById("step2");
 
-// Step 1: one button per rank. Clicking one moves us to the type step.
+// Build a card button: an ant icon on top, a name, then a description.
+function makeCard(icon, name, descText, onClick) {
+  const btn = document.createElement("button");
+  btn.appendChild(icon);
+  const nm = document.createElement("div");
+  nm.className = "name";
+  nm.textContent = name;
+  btn.appendChild(nm);
+  if (descText) {
+    const ds = document.createElement("small");
+    ds.textContent = descText;
+    btn.appendChild(ds);
+  }
+  btn.addEventListener("click", onClick);
+  return btn;
+}
+
+// Step 1: one card per rank (icon sized to show the rank's size).
 const ranksDiv = document.getElementById("ranks");
 for (const name in RANKS) {
   const rank = RANKS[name];
-  const btn = document.createElement("button");
-  btn.innerHTML = name + "<small>" + rank.desc + "</small>";
-  btn.addEventListener("click", () => chooseRank(name));
-  ranksDiv.appendChild(btn);
+  const icon = makeAntIcon(null, rank.size * 0.5);   // a plain ant, sized by rank
+  ranksDiv.appendChild(makeCard(icon, name, rank.desc, () => chooseRank(name)));
 }
 
-// Step 2: one button per type. Clicking one starts the game.
+// Step 2: one card per type (icon shows the type's markings).
 const typesDiv = document.getElementById("types");
 for (const type of ANT_TYPES) {
-  const btn = document.createElement("button");
-  btn.textContent = type.name;
-  btn.addEventListener("click", () => startGame(type));
-  typesDiv.appendChild(btn);
+  const icon = makeAntIcon(type, 12);
+  typesDiv.appendChild(makeCard(icon, type.name, type.ability, () => startGame(type)));
 }
 
 // Back button returns from the type step to the rank step.
