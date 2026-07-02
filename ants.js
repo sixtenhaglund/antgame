@@ -47,7 +47,7 @@ const ANT_TYPES = [
   { name: "Basic" },
   { name: "Spitter", spitter: true, ability: "E: spray 3 acid blobs (ranged)", abilityStat: "acidDmg", abilityLabel: "ACID" },
   { name: "Stinger", stinger: true, ability: "E: venom sting (melee)", abilityStat: "stingDmg", abilityLabel: "STING" },
-  { name: "Armoured", armoured: true, speedMult: 0.8, ability: "tanky: +HP, no ability",
+  { name: "Armored", armored: true, speedMult: 0.8, color: "#3a2410", ability: "tanky: +HP, no ability",
     hp: { Minor: 35, Major: 80, Supermajor: 160 } },   // explicit HP per rank
 ];
 
@@ -216,7 +216,7 @@ function drawAnt(a) {
     ctx.arc(glandX - 1 * k, -1 * k, glandR * 0.35, 0, Math.PI * 2);
     ctx.fill();
   }
-  if (type && type.armoured) {
+  if (type && type.armored) {
     // dark armor plate covering the back (thorax + abdomen).
     ctx.fillStyle = "rgba(0,0,0,0.45)";
     ctx.beginPath();

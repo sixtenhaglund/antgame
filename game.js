@@ -279,6 +279,7 @@ function startGame(type) {
   player.dmg = rank.dmg;
   player.acidDmg = rank.acidDmg;
   player.stingDmg = rank.stingDmg;
+  player.color = type.color || ANT_COLOR;   // some types recolor the body
   player.type = type;              // ...and the chosen type (for its markings)
   document.getElementById("menu").style.display = "none";  // hide the menu
   gameState = "playing";
@@ -444,7 +445,7 @@ function drawTypeGrid() {
     for (let c = 0; c < rankNames.length; c++) {
       const rank = RANKS[rankNames[c]];
       const x = startX + c * colSpacing;
-      drawAnt({ x, y, size: rank.size, color: ANT_COLOR, angle: 0, type: ANT_TYPES[r] });
+      drawAnt({ x, y, size: rank.size, color: type.color || ANT_COLOR, angle: 0, type: type });
 
       // stats under each ant: HP (type may override per rank), bite dmg, speed
       const hp = (type.hp && type.hp[rankNames[c]]) || rank.hp;
