@@ -131,25 +131,27 @@ function drawGround() {
   }
 }
 
-// ---- TEMP: draw one of each ant type in a row, so we can see them all ----
+// ---- TEMP: draw one ant of each rank in a row, so we can see them all ----
 function drawTypeRow() {
-  const spacing = 70;
-  const rowY = queen.y + 110;
+  const spacing = 80;
+  const rowY = queen.y + 120;
+  const names = Object.keys(RANKS);   // ["Minor", "Major", "Supermajor"]
   // center the row under the queen
-  const startX = queen.x - ((ANT_TYPES.length - 1) * spacing) / 2;
+  const startX = queen.x - ((names.length - 1) * spacing) / 2;
 
-  for (let i = 0; i < ANT_TYPES.length; i++) {
-    const type = ANT_TYPES[i];
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i];
+    const rank = RANKS[name];
     const x = startX + i * spacing;
 
-    // build a real ant from the type description and draw it facing right.
-    drawAnt({ x, y: rowY, size: type.size, color: ANT_COLOR, angle: 0 });
+    // build a real ant from the rank and draw it facing right.
+    drawAnt({ x, y: rowY, size: rank.size, color: ANT_COLOR, angle: 0 });
 
     // label under it
     ctx.fillStyle = "#e8dcc0";
     ctx.font = "10px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(type.name, x, rowY + 22);
+    ctx.fillText(name, x, rowY + 26);
   }
 }
 
