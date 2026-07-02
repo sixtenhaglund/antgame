@@ -171,7 +171,10 @@ function drawAnt(a) {
 
   // curved jaws poking out the front of the head — they ride along with the
   // head's lunge, so the whole "mouth" charges forward together.
-  drawMandibles((8 + lunge) * k, k * 0.6, bite);
+  // During the ability the mouth gapes open, so feed a negative value.
+  let jawBite = bite;
+  if (a.abilityAnim > 0) jawBite = -rise;
+  drawMandibles((8 + lunge) * k, k * 0.6, jawBite);
 
   ctx.restore();
 }

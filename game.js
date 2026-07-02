@@ -6,7 +6,7 @@ const ACID_SPEED = 7;        // how fast blobs fly
 const ACID_LIFE = 38;        // frames a blob lives before fading
 const ABILITY_COOLDOWN = 30; // frames between acid sprays
 const ABILITY_TIME = 26;     // length of the rear-up-and-shoot animation
-const SHOOT_FRAME = 13;      // the frame within it where the acid actually fires
+const SHOOT_FRAME = 9;       // the frame within it where the acid fires (later = smaller)
 const acidBlobs = [];       // all acid blobs currently in the air
 
 // Spray a fan of acid blobs out of the player's mouth, toward where it aims.
