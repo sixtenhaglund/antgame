@@ -26,6 +26,13 @@ const player = {
   biteCooldown: 0    // counts down after a bite before you can bite again
 };
 
+// ---- Player ranks: pick one at the start. Bigger = slower but tougher. ----
+const RANKS = {
+  Minor:      { size: 9,  radius: 4, speed: 3.6, desc: "small & fast" },
+  Major:      { size: 13, radius: 6, speed: 2.8, desc: "balanced" },
+  Supermajor: { size: 18, radius: 9, speed: 2.2, desc: "big & strong" },
+};
+
 // ---- The ant types (we'll add more here) ----
 // Each type is just a description; the row preview below builds a real ant
 // from it. For now they only differ by size — later they can differ by color,

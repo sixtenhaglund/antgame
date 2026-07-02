@@ -22,8 +22,32 @@ function placeAnts() {
 }
 placeAnts();
 
+// ---- Game state: "menu" until a rank is chosen, then "playing" ----
+let gameState = "menu";
+
+// Build one button per rank from the RANKS data, and start the game on click.
+const ranksDiv = document.getElementById("ranks");
+for (const name in RANKS) {
+  const rank = RANKS[name];
+  const btn = document.createElement("button");
+  btn.innerHTML = name + "<small>" + rank.desc + "</small>";
+  btn.addEventListener("click", () => startGame(name));
+  ranksDiv.appendChild(btn);
+}
+
+function startGame(rankName) {
+  const rank = RANKS[rankName];
+  player.size = rank.size;       // apply the chosen rank to the player ant
+  player.radius = rank.radius;
+  player.speed = rank.speed;
+  document.getElementById("menu").style.display = "none";  // hide the menu
+  gameState = "playing";
+}
+
 // ---- Update: move things ----
 function update() {
+  if (gameState !== "playing") return;   // ignore controls while in the menu
+
   // The camera is centered on the player and zoomed. Convert the mouse from
   // screen space to world space so aiming still lines up: undo the same
   // transform draw() applies below (player sits at the screen center).

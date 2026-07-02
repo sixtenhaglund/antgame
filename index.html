@@ -10,6 +10,13 @@
   <div id="hud">aim with mouse &nbsp;•&nbsp; W/A/S/D to move &nbsp;•&nbsp; click to bite &nbsp;•&nbsp; scroll to zoom</div>
   <canvas id="game"></canvas>
 
+  <!-- Rank-select menu, shown at the start. Buttons are filled in by game.js. -->
+  <div id="menu">
+    <h1>ANT GAME</h1>
+    <p>Choose your rank</p>
+    <div id="ranks"></div>
+  </div>
+
   <!-- Scripts load top to bottom and share their variables.
        game.js is last because it uses things the others define. -->
   <script src="input.js"></script>

@@ -19,3 +19,43 @@ html, body {
 canvas {
   display: block;           /* removes the tiny gap under the canvas */
 }
+
+/* ---- Rank-select menu overlay ---- */
+#menu {
+  position: fixed;
+  inset: 0;                 /* cover the whole screen (top/right/bottom/left = 0) */
+  display: flex;
+  flex-direction: column;   /* stack title, subtitle, buttons vertically */
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: rgba(10, 8, 4, 0.85);
+  z-index: 10;              /* sit on top of the canvas */
+}
+#menu h1 {
+  margin: 0;
+  letter-spacing: 5px;
+}
+#ranks {
+  display: flex;
+  gap: 16px;                /* space between the rank buttons */
+}
+#ranks button {
+  font-family: monospace;
+  font-size: 16px;
+  padding: 14px 20px;
+  cursor: pointer;
+  background: #3a2a15;
+  color: #e8dcc0;
+  border: 2px solid #5a3a1e;
+  border-radius: 8px;
+}
+#ranks button:hover {
+  background: #5a3a1e;
+}
+#ranks button small {
+  display: block;           /* description on its own line under the name */
+  opacity: 0.7;
+  font-size: 11px;
+  margin-top: 4px;
+}
