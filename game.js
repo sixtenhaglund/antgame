@@ -264,20 +264,40 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
+// ---- The map: a big square world with four colony nests in the corners ----
+const WORLD = 2600;
+const NEST_INSET = 280;
+const nests = [
+  { name: "Red",    color: "#d0453f", x: NEST_INSET,         y: NEST_INSET },
+  { name: "Blue",   color: "#4f8fe0", x: WORLD - NEST_INSET, y: NEST_INSET },
+  { name: "Yellow", color: "#e0c840", x: NEST_INSET,         y: WORLD - NEST_INSET },
+  { name: "Green",  color: "#4faf4f", x: WORLD - NEST_INSET, y: WORLD - NEST_INSET },
+];
+// each nest has a queen sitting in it
+for (const n of nests) {
+  n.queen = { x: n.x, y: n.y, size: 26, radius: 22, color: n.color, angle: 0 };
+}
+
+// Put the player at one nest — that becomes their colony.
+function spawnAtNest(i) {
+  const n = nests[i];
+  player.colony = n;
+  player.x = n.queen.x;
+  player.y = n.queen.y + 70;
+}
+
 // ---- Food blocks: break one (attack it) to drop a morsel you can pick up ----
 const foodBlocks = [];
 const foodPickups = [];
 
-// Place the ants once at the start.
+// Place things once at the start.
 function placeAnts() {
-  queen.x = canvas.width / 2;
-  queen.y = canvas.height / 2;
-  player.x = canvas.width / 2 - 120;
-  player.y = canvas.height / 2 + 80;
-  // a few food blocks off to the side
+  spawnAtNest(0);   // default; the real (random) spawn happens in startGame
+  // a few food blocks scattered near the middle of the map
   foodBlocks.length = 0;
-  for (const [dx, dy] of [[150, 20], [210, -40], [120, 90]]) {
-    foodBlocks.push({ x: queen.x + dx, y: queen.y + dy, size: 14, hp: 10, maxHp: 10, broken: false, respawn: 0 });
+  const cx = WORLD / 2, cy = WORLD / 2;
+  for (const [dx, dy] of [[-140, -40], [160, 20], [0, 170], [-40, -200]]) {
+    foodBlocks.push({ x: cx + dx, y: cy + dy, size: 14, hp: 10, maxHp: 10, broken: false, respawn: 0 });
   }
 }
 placeAnts();
@@ -355,12 +375,12 @@ const dummies = [];
 function placeDummies() {
   const names = Object.keys(RANKS);
   const spacing = 95;
-  const startX = queen.x - ((names.length - 1) * spacing) / 2;
+  const startX = WORLD / 2 - ((names.length - 1) * spacing) / 2;
   for (let i = 0; i < names.length; i++) {
     const rank = RANKS[names[i]];
     dummies.push({
       x: startX + i * spacing,
-      y: queen.y - 190,          // up above the queen
+      y: WORLD / 2 - 240,        // near the middle of the map
       size: rank.size,
       radius: rank.radius,
       hp: rank.hp,
@@ -494,6 +514,7 @@ function startGame(type) {
   player.food = player.maxFood;             // start with a full food bar
   player.netCost = (type.netCost && type.netCost[chosenRank]) || 0;
   player.type = type;              // ...and the chosen type (for its markings)
+  spawnAtNest(Math.floor(Math.random() * nests.length));   // random corner colony
   document.getElementById("menu").style.display = "none";  // hide the menu
   gameState = "playing";
 }
@@ -531,11 +552,16 @@ function update() {
   if (keys["a"] || keys["arrowleft"])  player.x -= player.speed;
   if (keys["d"] || keys["arrowright"]) player.x += player.speed;
 
-  // Stop the player from walking through the queen or any dummy (their hitboxes).
-  keepApart(player, queen);
+  // Collide with every queen and living dummy (their hitboxes).
+  for (const n of nests) keepApart(player, n.queen);
   for (const d of dummies) {
     if (d.hp > 0) keepApart(player, d);
   }
+
+  // Stay inside the world bounds.
+  const m = player.radius;
+  player.x = Math.max(m, Math.min(WORLD - m, player.x));
+  player.y = Math.max(m, Math.min(WORLD - m, player.y));
 
   // update food blocks (respawn) and pick up any morsels we're standing on
   updateFood();
@@ -632,63 +658,43 @@ function drawGround() {
   }
 }
 
-// ---- TEMP: a grid of every type × rank, so we can see them all.
-// Each TYPE is a row; the three RANKS (Minor/Major/Supermajor) are the columns.
-// Adding to RANKS or ANT_TYPES grows the grid automatically. ----
-function drawTypeGrid() {
-  const rankNames = Object.keys(RANKS);   // the columns
-  const colSpacing = 80;
-  const rowSpacing = 110;
-  const startX = queen.x - ((rankNames.length - 1) * colSpacing) / 2;
-  const startY = queen.y + 130;
+// ---- Draw the four colony nests (mound + queen + label) ----
+function drawColonyNests() {
+  for (const n of nests) {
+    // translucent colored ground marking the colony
+    ctx.save();
+    ctx.globalAlpha = 0.14;
+    ctx.fillStyle = n.color;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, 130, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
 
-  ctx.fillStyle = "#e8dcc0";
-  ctx.font = "11px monospace";
+    drawQueen(n.queen);
 
-  // column headers: the rank names across the top
-  ctx.textAlign = "center";
-  for (let c = 0; c < rankNames.length; c++) {
-    ctx.fillText(rankNames[c], startX + c * colSpacing, startY - 32);
+    // name label (marks yours)
+    ctx.fillStyle = n.color;
+    ctx.font = "14px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(n.name + (n === player.colony ? " (you)" : ""), n.x, n.y - 46);
   }
+}
 
-  // one row per type
-  for (let r = 0; r < ANT_TYPES.length; r++) {
-    const y = startY + r * rowSpacing;
+// ---- The world border, so you can see the edges of the map ----
+function drawWorldBorder() {
+  ctx.strokeStyle = "#4a3820";
+  ctx.lineWidth = 6;
+  ctx.strokeRect(0, 0, WORLD, WORLD);
+}
 
-    // row label: the type name, off to the left, with its ability under it
-    const type = ANT_TYPES[r];
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#e8dcc0";
-    ctx.font = "11px monospace";
-    ctx.fillText(type.name, startX - colSpacing * 0.7, y);
-    if (type.ability) {
-      ctx.fillStyle = "#b8a888";
-      ctx.font = "9px monospace";
-      ctx.fillText(type.ability, startX - colSpacing * 0.7, y + 13);
-    }
-
-    // one ant per rank across the row, drawn with this row's type markings
-    for (let c = 0; c < rankNames.length; c++) {
-      const rank = RANKS[rankNames[c]];
-      const x = startX + c * colSpacing;
-      drawAnt({ x, y, size: rank.size, color: type.color || ANT_COLOR, angle: 0, type: type });
-
-      // stats under each ant: HP (type may override per rank), bite dmg, speed
-      const hp = (type.hp && type.hp[rankNames[c]]) || rank.hp;
-      const dmg = (type.dmg && type.dmg[rankNames[c]]) || rank.dmg;
-      const spd = ((type.speed && type.speed[rankNames[c]]) || rank.speed).toFixed(1);
-      ctx.fillStyle = "#b8a888";
-      ctx.font = "9px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("HP " + hp + "  DMG " + dmg, x, y + rank.size + 16);
-      ctx.fillText("SPD " + spd, x, y + rank.size + 27);
-      // ability damage for this rank, if the type has an ability
-      if (type.abilityStat) {
-        ctx.fillStyle = "#aef25a";
-        ctx.fillText(type.abilityLabel + " " + rank[type.abilityStat], x, y + rank.size + 38);
-      }
-    }
-  }
+// ---- Colored ring around the player, showing their colony ----
+function drawColonyRing() {
+  if (!player.colony) return;
+  ctx.strokeStyle = player.colony.color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(player.x, player.y, player.size + 5, 0, Math.PI * 2);
+  ctx.stroke();
 }
 
 // ---- HP bar above the player (drawn in world space, above the ant) ----
@@ -751,14 +757,15 @@ function draw() {
   ctx.translate(-player.x, -player.y);
 
   drawGround();
+  drawWorldBorder();
   drawFood();
-  drawQueen(queen);
-  drawTypeGrid();  // TEMP: the type × rank grid
+  drawColonyNests();  // the four corner nests + queens
   drawDummies();   // practice targets
   drawNetPreview();// red hologram of where a Weaver's net will land
   drawNets();      // net traps (drawn over the trapped enemy)
   drawAcid();      // under the ant, so the head hides where it spawns
   drawAnt(player);
+  drawColonyRing();// colored ring showing your colony
   drawPlayerHp();  // hp bar above your ant
   drawSplash();    // splashes on top, since they happen out at the target
 

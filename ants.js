@@ -1,16 +1,6 @@
 // Both ants share this color.
 const ANT_COLOR = "#5a3a1e";
 
-// The queen sits in the middle of the world.
-const queen = {
-  x: 0,
-  y: 0,
-  size: 26,
-  radius: 20,        // circle used for collision (roughly her body size)
-  color: ANT_COLOR,
-  angle: 0
-};
-
 // "You" — the player ant you control.
 const player = {
   x: 0,
@@ -32,7 +22,8 @@ const player = {
   dmg: 8,            // bite damage (set from the chosen rank)
   acidDmg: 4,        // acid damage per blob (set from the chosen rank)
   stingDmg: 15,      // venom sting damage (set from the chosen rank)
-  type: null         // which ant type you chose (set from the menu)
+  type: null,        // which ant type you chose (set from the menu)
+  colony: null       // which corner nest you belong to (set at spawn)
 };
 
 // ---- Player ranks: pick one at the start. Bigger = slower but tougher. ----
