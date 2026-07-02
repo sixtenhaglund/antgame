@@ -559,6 +559,46 @@ function drawTypeGrid() {
   }
 }
 
+// ---- HP bar above the player (drawn in world space, above the ant) ----
+function drawPlayerHp() {
+  const w = player.size * 2.6;
+  const bx = player.x - w / 2;
+  const by = player.y - player.size - 16;
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.fillRect(bx, by, w, 4);
+  ctx.fillStyle = "#5ad25a";
+  ctx.fillRect(bx, by, w * (player.hp / player.maxHp), 4);
+}
+
+// ---- Cooldown bars for bite + ability (drawn in screen space, bottom) ----
+function drawCooldownBars() {
+  // frac goes 0 (just used) → 1 (ready) as the cooldown counts down.
+  const bars = [
+    { label: "BITE", frac: 1 - player.biteCooldown / (BITE_TIME + BITE_COOLDOWN), color: "#e8b84a" },
+  ];
+  const hasAbility = player.type && (player.type.spitter || player.type.stinger || player.type.weaver);
+  if (hasAbility) {
+    bars.push({ label: "E", frac: 1 - player.abilityCooldown / (ABILITY_TIME + ABILITY_COOLDOWN), color: "#6ad0e0" });
+  }
+
+  const barW = 150, barH = 8;
+  const x = canvas.width / 2 - barW / 2;
+  let y = canvas.height - 46;
+  ctx.font = "10px monospace";
+  ctx.textAlign = "right";
+  for (const b of bars) {
+    const f = Math.max(0, Math.min(1, b.frac));
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillRect(x, y, barW, barH);
+    // dim while charging, bright when ready
+    ctx.fillStyle = f >= 1 ? b.color : "rgba(255,255,255,0.35)";
+    ctx.fillRect(x, y, barW * f, barH);
+    ctx.fillStyle = "#e8dcc0";
+    ctx.fillText(b.label, x - 6, y + barH);
+    y += 14;
+  }
+}
+
 // ---- Draw: paint the frame ----
 function draw() {
   // Clear the screen by repainting the soil background (before zoom, so it
@@ -583,9 +623,13 @@ function draw() {
   drawNets();      // net traps (drawn over the trapped enemy)
   drawAcid();      // under the ant, so the head hides where it spawns
   drawAnt(player);
+  drawPlayerHp();  // hp bar above your ant
   drawSplash();    // splashes on top, since they happen out at the target
 
   ctx.restore();   // undo the camera so next frame starts clean
+
+  // screen-fixed UI (drawn after the camera reset, so it doesn't move/zoom)
+  if (gameState === "playing") drawCooldownBars();
 }
 
 // ---- The game loop: runs ~60 times per second ----
