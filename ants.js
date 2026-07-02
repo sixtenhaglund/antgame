@@ -32,7 +32,7 @@ const player = {
 // ---- Player ranks: pick one at the start. Bigger = slower but tougher. ----
 const RANKS = {
   Minor:      { size: 9,  radius: 4, speed: 3.6, desc: "small & fast" },
-  Major:      { size: 13, radius: 6, speed: 2.8, desc: "balanced" },
+  Major:      { size: 17, radius: 8, speed: 2.8, desc: "balanced" },
   Supermajor: { size: 26, radius: 13, speed: 2.0, desc: "big & strong" },
 };
 
