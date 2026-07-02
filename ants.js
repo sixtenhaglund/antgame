@@ -49,6 +49,13 @@ const ANT_TYPES = [
   { name: "Stinger", stinger: true, ability: "E: venom sting (melee)", abilityStat: "stingDmg", abilityLabel: "STING" },
 ];
 
+// ---- Stinger jab numbers, shared by drawAnt (the look) and doSting (the hit)
+// so the hitbox lands exactly on the drawn stinger tip. ----
+const STING_TWIST = 1.3;   // whole-body twist at the peak (radians)
+const STING_CURL  = 3.0;   // how far the tail rotates over (radians)
+const STING_PIVOT = -2;    // x of the tail's pivot (in body units, ×k)
+const STING_TIPX  = -18;   // x of the stinger tip (in body units, ×k)
+
 // ---- Curved mandibles (jaws), shared by the worker and the queen ----
 // frontX = where they attach at the front of the head; k = size scale.
 // bite = 0 (open) .. 1 (snapped shut): the tips swing toward the center and
@@ -97,8 +104,8 @@ function drawAnt(a) {
 
   ctx.save();
   ctx.translate(a.x, a.y);
-  // Stinger also gives the whole body a small twist as it jabs.
-  const spin = (a.type && a.type.stinger) ? rise * 0.7 : 0;
+  // Stinger also gives the whole body a twist as it jabs.
+  const spin = (a.type && a.type.stinger) ? rise * STING_TWIST : 0;
   ctx.rotate((a.angle || 0) + spin);
 
   // legs first, so the body sits on top of them.
@@ -158,8 +165,8 @@ function drawAnt(a) {
     // Curl the whole tail around a pivot near the body, so it swings up and
     // OVER toward the front — bringing the straight stinger to face forward.
     ctx.save();
-    const pivotX = -2 * k;
-    const tailCurl = rise * 2.8;                 // ~160° at the peak of the jab
+    const pivotX = STING_PIVOT * k;
+    const tailCurl = rise * STING_CURL;          // curls over at the peak of the jab
     ctx.translate(pivotX, 0);
     ctx.rotate(tailCurl);
     ctx.translate(-pivotX, 0);
@@ -170,7 +177,7 @@ function drawAnt(a) {
     ctx.fill();
 
     // straight, fixed stinger out the back — the curl is what turns it forward.
-    const baseX = -11 * k, tipX = baseX - 7 * k;
+    const baseX = -11 * k, tipX = STING_TIPX * k;
     ctx.fillStyle = "#ffe27a";
     ctx.beginPath();
     ctx.moveTo(baseX, -1.6 * k);

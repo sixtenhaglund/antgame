@@ -27,14 +27,33 @@ function spawnAcid() {
   }
 }
 
-// ---- The Stinger's sting: a close-range jab in front for big damage ----
+// ---- The Stinger's sting: damage lands right on the stinger tip ----
+// We replay the same transforms drawAnt uses (body twist, then tail curl about
+// its pivot) to find where the tip actually is in the world.
+function stingerTipPos() {
+  const k = player.size / 10;
+  const rise = Math.sin((1 - player.abilityAnim / ABILITY_TIME) * Math.PI);
+  const theta = rise * STING_CURL;               // tail rotation
+  const phi = player.angle + rise * STING_TWIST; // body twist + facing
+
+  // tip in the body frame: rotate the tip around the tail's pivot
+  const armX = (STING_TIPX - STING_PIVOT) * k;    // tip distance from the pivot
+  const bx = STING_PIVOT * k + armX * Math.cos(theta);
+  const by = armX * Math.sin(theta);
+
+  // then rotate that by the body twist and shift to the player's position
+  return {
+    x: player.x + bx * Math.cos(phi) - by * Math.sin(phi),
+    y: player.y + bx * Math.sin(phi) + by * Math.cos(phi),
+  };
+}
+
 function doSting() {
-  const reach = player.size * 1.6;   // how far in front the jab lands
-  const jx = player.x + Math.cos(player.angle) * reach;
-  const jy = player.y + Math.sin(player.angle) * reach;
+  const tip = stingerTipPos();
+  const hitR = player.size * 0.9;   // small hitbox around the stinger tip
   for (const d of dummies) {
     if (d.hp <= 0) continue;
-    if (Math.hypot(jx - d.x, jy - d.y) < d.radius + player.size) {
+    if (Math.hypot(tip.x - d.x, tip.y - d.y) < d.radius + hitR) {
       hurtDummy(d, player.stingDmg);
       spawnSplash(d.x, d.y, "255,226,122");   // yellow venom splash
     }
