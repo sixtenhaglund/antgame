@@ -28,14 +28,15 @@ const player = {
   abilityAnim: 0,    // counts down during the rear-up-and-shoot animation
   hp: 45, maxHp: 45, // health (set from the chosen rank)
   dmg: 8,            // bite damage (set from the chosen rank)
+  acidDmg: 4,        // acid damage per blob (set from the chosen rank)
   type: null         // which ant type you chose (set from the menu)
 };
 
 // ---- Player ranks: pick one at the start. Bigger = slower but tougher. ----
 const RANKS = {
-  Minor:      { size: 9,  radius: 4,  speed: 3.6, hp: 20, dmg: 4,  desc: "small & fast" },
-  Major:      { size: 17, radius: 8,  speed: 2.8, hp: 45, dmg: 8,  desc: "balanced" },
-  Supermajor: { size: 26, radius: 13, speed: 2.0, hp: 90, dmg: 15, desc: "big & strong" },
+  Minor:      { size: 9,  radius: 4,  speed: 3.6, hp: 20, dmg: 4,  acidDmg: 3, desc: "small & fast" },
+  Major:      { size: 17, radius: 8,  speed: 2.8, hp: 45, dmg: 8,  acidDmg: 4, desc: "balanced" },
+  Supermajor: { size: 26, radius: 13, speed: 2.0, hp: 90, dmg: 15, acidDmg: 5, desc: "big & strong" },
 };
 
 // ---- The ant types (we'll add more here) ----
