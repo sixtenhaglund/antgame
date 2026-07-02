@@ -49,7 +49,7 @@ function drawAcid() {
     // As drag slows it, vx/vy shrink, so the streak naturally gets shorter.
     ctx.beginPath();
     ctx.moveTo(b.x, b.y);
-    ctx.lineTo(b.x - b.vx * 0.9, b.y - b.vy * 0.9);
+    ctx.lineTo(b.x - b.vx * 1.5, b.y - b.vy * 1.5);
     ctx.stroke();
   }
 }
