@@ -31,14 +31,34 @@ function spawnAcid() {
 const SLOW_TIME = 240;   // 4 seconds at 60fps
 const nets = [];
 
-function doWeave() {
-  // drop a net a bit in front of the Weaver, where it's aiming.
-  // The net is bigger on higher ranks (player.size grows with rank).
+// Where the net would land and how big — used by both the placement and the
+// red preview, so they always match exactly.
+function netTarget() {
   const dist = player.size * 3;
-  const nx = player.x + Math.cos(player.angle) * dist;
-  const ny = player.y + Math.sin(player.angle) * dist;
-  nets.push({ x: nx, y: ny, r: player.size * 1.6, trapped: null, timer: 0 });
-  spawnSplash(nx, ny, "230,235,250");   // a little puff of silk
+  return {
+    x: player.x + Math.cos(player.angle) * dist,
+    y: player.y + Math.sin(player.angle) * dist,
+    r: player.size * 1.6,   // bigger on higher ranks
+  };
+}
+
+function doWeave() {
+  const t = netTarget();
+  nets.push({ x: t.x, y: t.y, r: t.r, trapped: null, timer: 0 });
+  spawnSplash(t.x, t.y, "230,235,250");   // a little puff of silk
+}
+
+// Red "hologram" showing where the net will go, while playing a Weaver.
+function drawNetPreview() {
+  if (!(player.type && player.type.weaver)) return;
+  const t = netTarget();
+  ctx.fillStyle = "rgba(255,60,60,0.12)";
+  ctx.strokeStyle = "rgba(255,60,60,0.7)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
 }
 
 function updateNets() {
@@ -559,6 +579,7 @@ function draw() {
   drawQueen(queen);
   drawTypeGrid();  // TEMP: the type × rank grid
   drawDummies();   // practice targets
+  drawNetPreview();// red hologram of where a Weaver's net will land
   drawNets();      // net traps (drawn over the trapped enemy)
   drawAcid();      // under the ant, so the head hides where it spawns
   drawAnt(player);
