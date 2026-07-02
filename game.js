@@ -43,6 +43,7 @@ function netTarget() {
 }
 
 function doWeave() {
+  player.food -= player.netCost;   // spend food (already checked we have enough)
   const t = netTarget();
   nets.push({ x: t.x, y: t.y, r: t.r, trapped: null, timer: 0 });
   spawnSplash(t.x, t.y, "230,235,250");   // a little puff of silk
@@ -235,14 +236,32 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
+// A food block you can stand on to refill your food (for testing the Weaver).
+const foodBlock = { x: 0, y: 0, size: 16 };
+
 // Place the ants once at the start.
 function placeAnts() {
   queen.x = canvas.width / 2;
   queen.y = canvas.height / 2;
   player.x = canvas.width / 2 - 120;
   player.y = canvas.height / 2 + 80;
+  foodBlock.x = queen.x + 150;   // off to the side
+  foodBlock.y = queen.y + 30;
 }
 placeAnts();
+
+function drawFoodBlock() {
+  const s = foodBlock.size;
+  ctx.fillStyle = "#6ab04a";
+  ctx.fillRect(foodBlock.x - s, foodBlock.y - s, s * 2, s * 2);
+  ctx.strokeStyle = "#3a6a2a";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(foodBlock.x - s, foodBlock.y - s, s * 2, s * 2);
+  ctx.fillStyle = "#12200a";
+  ctx.font = "9px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("FOOD", foodBlock.x, foodBlock.y + 3);
+}
 
 // ---- Test dummies: one per rank, to practice attacks on ----
 const dummies = [];
@@ -372,6 +391,8 @@ function startGame(type) {
   player.acidDmg = rank.acidDmg;
   player.stingDmg = rank.stingDmg;
   player.color = type.color || ANT_COLOR;   // some types recolor the body
+  player.food = player.maxFood;             // start with a full food bar
+  player.netCost = (type.netCost && type.netCost[chosenRank]) || 0;
   player.type = type;              // ...and the chosen type (for its markings)
   document.getElementById("menu").style.display = "none";  // hide the menu
   gameState = "playing";
@@ -413,6 +434,11 @@ function update() {
   // Stop the player from walking through the queen.
   keepApart(player, queen);
 
+  // Standing on the food block refills your food.
+  if (Math.hypot(player.x - foodBlock.x, player.y - foodBlock.y) < player.radius + foodBlock.size) {
+    player.food = player.maxFood;
+  }
+
   // Walking animation: did we actually move? If so, advance the leg swing.
   player.moving = (player.x !== startX || player.y !== startY);
   if (player.moving) player.walkPhase += 0.35;
@@ -444,10 +470,14 @@ function update() {
   // Ability (E key): any type that has one can start its ability animation.
   const hasAbility = player.type && (player.type.spitter || player.type.stinger || player.type.weaver);
   if (keys["e"] && player.abilityCooldown <= 0 && player.abilityAnim <= 0 && hasAbility) {
-    player.abilityAnim = ABILITY_TIME;
-    player.abilityCooldown = ABILITY_TIME + ABILITY_COOLDOWN;
-    // The net drops the instant you press E (no wind-up).
-    if (player.type.weaver) doWeave();
+    // A Weaver can only weave if it has enough food for a net.
+    const weaverBlocked = player.type.weaver && player.food < player.netCost;
+    if (!weaverBlocked) {
+      player.abilityAnim = ABILITY_TIME;
+      player.abilityCooldown = ABILITY_TIME + ABILITY_COOLDOWN;
+      // The net drops the instant you press E (no wind-up).
+      if (player.type.weaver) doWeave();
+    }
   }
   // Spitter/Stinger effects fire partway through the animation, at the peak.
   if (player.abilityAnim === SHOOT_FRAME) {
@@ -572,10 +602,13 @@ function drawPlayerHp() {
 
 // ---- Cooldown bars for bite + ability (drawn in screen space, bottom) ----
 function drawCooldownBars() {
+  const bars = [];
+  // Weavers show a food bar (raw = shown as a level, not a cooldown).
+  if (player.type && player.type.weaver) {
+    bars.push({ label: "FOOD", frac: player.food / player.maxFood, color: "#9ad84a", raw: true });
+  }
   // frac goes 0 (just used) → 1 (ready) as the cooldown counts down.
-  const bars = [
-    { label: "BITE", frac: 1 - player.biteCooldown / (BITE_TIME + BITE_COOLDOWN), color: "#e8b84a" },
-  ];
+  bars.push({ label: "BITE", frac: 1 - player.biteCooldown / (BITE_TIME + BITE_COOLDOWN), color: "#e8b84a" });
   const hasAbility = player.type && (player.type.spitter || player.type.stinger || player.type.weaver);
   if (hasAbility) {
     bars.push({ label: "E", frac: 1 - player.abilityCooldown / (ABILITY_TIME + ABILITY_COOLDOWN), color: "#6ad0e0" });
@@ -583,15 +616,15 @@ function drawCooldownBars() {
 
   const barW = 150, barH = 8;
   const x = canvas.width / 2 - barW / 2;
-  let y = canvas.height - 46;
+  let y = canvas.height - 24 - bars.length * 14;
   ctx.font = "10px monospace";
   ctx.textAlign = "right";
   for (const b of bars) {
     const f = Math.max(0, Math.min(1, b.frac));
     ctx.fillStyle = "rgba(0,0,0,0.5)";
     ctx.fillRect(x, y, barW, barH);
-    // dim while charging, bright when ready
-    ctx.fillStyle = f >= 1 ? b.color : "rgba(255,255,255,0.35)";
+    // food shows its level directly; cooldowns are dim while charging, bright when ready
+    ctx.fillStyle = b.raw ? b.color : (f >= 1 ? b.color : "rgba(255,255,255,0.35)");
     ctx.fillRect(x, y, barW * f, barH);
     ctx.fillStyle = "#e8dcc0";
     ctx.fillText(b.label, x - 6, y + barH);
@@ -616,6 +649,7 @@ function draw() {
   ctx.translate(-player.x, -player.y);
 
   drawGround();
+  drawFoodBlock();
   drawQueen(queen);
   drawTypeGrid();  // TEMP: the type × rank grid
   drawDummies();   // practice targets

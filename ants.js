@@ -27,6 +27,8 @@ const player = {
   abilityCooldown: 0,// counts down between ability uses (E key)
   abilityAnim: 0,    // counts down during the rear-up-and-shoot animation
   hp: 45, maxHp: 45, // health (set from the chosen rank)
+  food: 10, maxFood: 10,  // resource the Weaver spends on nets
+  netCost: 0,        // food per net (set from rank; 0 for non-Weavers)
   dmg: 8,            // bite damage (set from the chosen rank)
   acidDmg: 4,        // acid damage per blob (set from the chosen rank)
   stingDmg: 15,      // venom sting damage (set from the chosen rank)
@@ -51,10 +53,12 @@ const ANT_TYPES = [
     dmg: { Minor: 2, Major: 5, Supermajor: 10 } },   // weak bite (its power is the sting)
   { name: "Armored", armored: true, color: "#3a2410", ability: "tanky: +HP, no ability",
     hp:    { Minor: 35,  Major: 80, Supermajor: 200 },   // explicit HP per rank
-    speed: { Minor: 2.5, Major: 2,  Supermajor: 1 } },   // explicit speed per rank
-  { name: "Weaver", weaver: true, ability: "E: set a net trap (slows 4s)",
+    speed: { Minor: 2.5, Major: 2,  Supermajor: 1 },     // explicit speed per rank
+    dmg:   { Minor: 3, Major: 6, Supermajor: 10 } },     // weaker bite
+  { name: "Weaver", weaver: true, ability: "E: net trap, slows 4s (costs food)",
     hp:    { Minor: 15,  Major: 35,  Supermajor: 70 },    // fragile
-    speed: { Minor: 4.2, Major: 3.4, Supermajor: 2.6 } }, // fast
+    speed: { Minor: 4,   Major: 3.5, Supermajor: 2.5 },   // fast
+    netCost: { Minor: 1, Major: 2, Supermajor: 3 } },     // food per net
 ];
 
 // ---- Stinger jab numbers, shared by drawAnt (the look) and doSting (the hit)
@@ -252,7 +256,9 @@ function drawAnt(a) {
   // During the ability the mouth gapes open, so feed a negative value.
   let jawBite = bite;
   if (a.abilityAnim > 0 && a.type && a.type.spitter) jawBite = -rise;
-  drawMandibles((8 + lunge) * k, k * 0.6, jawBite);
+  // Stinger and Armored have smaller jaws.
+  const jawScale = (a.type && (a.type.stinger || a.type.armored)) ? 0.4 : 0.6;
+  drawMandibles((8 + lunge) * k, k * jawScale, jawBite);
 
   ctx.restore();
 }
