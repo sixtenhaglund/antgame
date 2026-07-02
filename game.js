@@ -88,7 +88,6 @@ function placeAnts() {
   player.y = canvas.height / 2 + 80;
 }
 placeAnts();
-placeDummies();
 
 // ---- Test dummies: one per rank, to practice attacks on ----
 const dummies = [];
@@ -400,4 +399,5 @@ function loop() {
   draw();
   requestAnimationFrame(loop);   // ask the browser to run loop() again next frame
 }
+placeDummies();   // after the dummies array + queen position both exist
 loop();
