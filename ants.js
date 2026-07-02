@@ -24,6 +24,7 @@ const player = {
   moving: false,     // did it move this frame?
   biteAnim: 0,       // counts down during a bite (0 = not biting)
   biteCooldown: 0,   // counts down after a bite before you can bite again
+  abilityCooldown: 0,// counts down between ability uses (E key)
   type: null         // which ant type you chose (set from the menu)
 };
 

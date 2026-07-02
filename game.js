@@ -2,8 +2,9 @@ const BITE_TIME = 22;       // how many frames one bite lasts (wind-up + charge 
 const BITE_COOLDOWN = 45;   // extra frames you must wait after a bite before biting again
 
 // ---- Acid spray (Spitter ability) ----
-const ACID_SPEED = 7;       // how fast blobs fly
-const ACID_LIFE = 38;       // frames a blob lives before fading
+const ACID_SPEED = 7;        // how fast blobs fly
+const ACID_LIFE = 38;        // frames a blob lives before fading
+const ABILITY_COOLDOWN = 30; // frames between acid sprays
 const acidBlobs = [];       // all acid blobs currently in the air
 
 // Spray a fan of acid blobs out of the player's mouth, toward where it aims.
@@ -160,11 +161,16 @@ function update() {
   if (mouse.down && player.biteAnim <= 0 && player.biteCooldown <= 0) {
     player.biteAnim = BITE_TIME;
     player.biteCooldown = BITE_TIME + BITE_COOLDOWN;
-    // Spitters spray acid when they attack.
-    if (player.type && player.type.spitter) spawnAcid();
   }
   if (player.biteAnim > 0) player.biteAnim--;
   if (player.biteCooldown > 0) player.biteCooldown--;
+
+  // Ability (E key): the Spitter sprays acid. Gated by its own cooldown.
+  if (keys["e"] && player.abilityCooldown <= 0 && player.type && player.type.spitter) {
+    spawnAcid();
+    player.abilityCooldown = ABILITY_COOLDOWN;
+  }
+  if (player.abilityCooldown > 0) player.abilityCooldown--;
 
   // Move the acid blobs that are in the air.
   updateAcid();
