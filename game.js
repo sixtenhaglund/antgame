@@ -36,7 +36,7 @@ function doWeave() {
   const dist = player.size * 3;
   const nx = player.x + Math.cos(player.angle) * dist;
   const ny = player.y + Math.sin(player.angle) * dist;
-  nets.push({ x: nx, y: ny, r: player.size * 2.2, trapped: null, timer: 0 });
+  nets.push({ x: nx, y: ny, r: player.size * 1.4, trapped: null, timer: 0 });
   spawnSplash(nx, ny, "230,235,250");   // a little puff of silk
 }
 
