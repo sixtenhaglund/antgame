@@ -533,11 +533,13 @@ function update() {
 
   // Collide with every queen and unbroken rock (their hitboxes).
   for (const n of nests) keepApart(player, n.queen);
+  // use a body-sized radius against rocks so the ant doesn't visually overlap
+  const bodyR = player.size * 0.85;
   for (const r of rocks) {
     if (r.broken) continue;
     // cheap skip of far rocks before the real collision test
-    if (Math.abs(r.x - player.x) > 60 || Math.abs(r.y - player.y) > 60) continue;
-    keepOutOfRock(player, r);   // rocks block your path until smashed
+    if (Math.abs(r.x - player.x) > 90 || Math.abs(r.y - player.y) > 90) continue;
+    keepOutOfRock(player, r, bodyR);   // rocks block your path until smashed
   }
 
   // Stay inside the world bounds.
@@ -611,7 +613,9 @@ function keepApart(a, b) {
 
 // ---- Circle vs square: push circle `a` out of the square rock `r` ----
 // (Rocks are squares, so a circle test would let you clip the corners.)
-function keepOutOfRock(a, r) {
+// `rad` is the collision radius to use — for rocks we pass a bigger one than
+// a.radius, so the ant's drawn body doesn't visually overlap the stone.
+function keepOutOfRock(a, r, rad) {
   const s = r.size;
   // closest point on the rock's box to the circle's center
   const nx = Math.max(r.x - s, Math.min(a.x, r.x + s));
@@ -622,12 +626,12 @@ function keepOutOfRock(a, r) {
     // center is inside the rock — shove out the nearest wall
     const pen = [a.x - (r.x - s), (r.x + s) - a.x, a.y - (r.y - s), (r.y + s) - a.y];
     const min = Math.min(...pen);
-    if (min === pen[0]) a.x = r.x - s - a.radius;
-    else if (min === pen[1]) a.x = r.x + s + a.radius;
-    else if (min === pen[2]) a.y = r.y - s - a.radius;
-    else a.y = r.y + s + a.radius;
-  } else if (dist < a.radius) {
-    const push = a.radius - dist;      // move out along the closest-point direction
+    if (min === pen[0]) a.x = r.x - s - rad;
+    else if (min === pen[1]) a.x = r.x + s + rad;
+    else if (min === pen[2]) a.y = r.y - s - rad;
+    else a.y = r.y + s + rad;
+  } else if (dist < rad) {
+    const push = rad - dist;           // move out along the closest-point direction
     a.x += (dx / dist) * push;
     a.y += (dy / dist) * push;
   }
