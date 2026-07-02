@@ -537,7 +537,7 @@ function update() {
     if (r.broken) continue;
     // cheap skip of far rocks before the real collision test
     if (Math.abs(r.x - player.x) > 60 || Math.abs(r.y - player.y) > 60) continue;
-    keepApart(player, r);   // rocks block your path until smashed
+    keepOutOfRock(player, r);   // rocks block your path until smashed
   }
 
   // Stay inside the world bounds.
@@ -606,6 +606,30 @@ function keepApart(a, b) {
     // exactly minDist along it puts it right on b's edge, no longer overlapping.
     a.x = b.x + (dx / dist) * minDist;
     a.y = b.y + (dy / dist) * minDist;
+  }
+}
+
+// ---- Circle vs square: push circle `a` out of the square rock `r` ----
+// (Rocks are squares, so a circle test would let you clip the corners.)
+function keepOutOfRock(a, r) {
+  const s = r.size;
+  // closest point on the rock's box to the circle's center
+  const nx = Math.max(r.x - s, Math.min(a.x, r.x + s));
+  const ny = Math.max(r.y - s, Math.min(a.y, r.y + s));
+  const dx = a.x - nx, dy = a.y - ny;
+  const dist = Math.hypot(dx, dy);
+  if (dist === 0) {
+    // center is inside the rock — shove out the nearest wall
+    const pen = [a.x - (r.x - s), (r.x + s) - a.x, a.y - (r.y - s), (r.y + s) - a.y];
+    const min = Math.min(...pen);
+    if (min === pen[0]) a.x = r.x - s - a.radius;
+    else if (min === pen[1]) a.x = r.x + s + a.radius;
+    else if (min === pen[2]) a.y = r.y - s - a.radius;
+    else a.y = r.y + s + a.radius;
+  } else if (dist < a.radius) {
+    const push = a.radius - dist;      // move out along the closest-point direction
+    a.x += (dx / dist) * push;
+    a.y += (dy / dist) * push;
   }
 }
 
