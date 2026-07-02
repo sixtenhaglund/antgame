@@ -131,30 +131,38 @@ function drawGround() {
   }
 }
 
-// ---- TEMP: draw one ant of every rank and type in a row, to see them all.
-// Anything we add to RANKS or ANT_TYPES shows up here automatically. ----
-function drawTypeRow() {
-  // build one combined list of {name, size} from both sources.
-  const entries = [];
-  for (const name in RANKS) entries.push({ name, size: RANKS[name].size });
-  for (const type of ANT_TYPES) entries.push({ name: type.name, size: type.size });
+// ---- TEMP: a grid of every type × rank, so we can see them all.
+// Each TYPE is a row; the three RANKS (Minor/Major/Supermajor) are the columns.
+// Adding to RANKS or ANT_TYPES grows the grid automatically. ----
+function drawTypeGrid() {
+  const rankNames = Object.keys(RANKS);   // the columns
+  const colSpacing = 80;
+  const rowSpacing = 95;
+  const startX = queen.x - ((rankNames.length - 1) * colSpacing) / 2;
+  const startY = queen.y + 130;
 
-  const spacing = 80;
-  const rowY = queen.y + 120;
-  const startX = queen.x - ((entries.length - 1) * spacing) / 2;   // center the row
+  ctx.fillStyle = "#e8dcc0";
+  ctx.font = "11px monospace";
 
-  for (let i = 0; i < entries.length; i++) {
-    const e = entries[i];
-    const x = startX + i * spacing;
+  // column headers: the rank names across the top
+  ctx.textAlign = "center";
+  for (let c = 0; c < rankNames.length; c++) {
+    ctx.fillText(rankNames[c], startX + c * colSpacing, startY - 32);
+  }
 
-    // build a real ant from the entry and draw it facing right.
-    drawAnt({ x, y: rowY, size: e.size, color: ANT_COLOR, angle: 0 });
+  // one row per type
+  for (let r = 0; r < ANT_TYPES.length; r++) {
+    const y = startY + r * rowSpacing;
 
-    // label under it
-    ctx.fillStyle = "#e8dcc0";
-    ctx.font = "10px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(e.name, x, rowY + 26);
+    // row label: the type name, off to the left
+    ctx.textAlign = "right";
+    ctx.fillText(ANT_TYPES[r].name, startX - colSpacing * 0.7, y);
+
+    // one ant per rank across the row
+    for (let c = 0; c < rankNames.length; c++) {
+      const rank = RANKS[rankNames[c]];
+      drawAnt({ x: startX + c * colSpacing, y, size: rank.size, color: ANT_COLOR, angle: 0 });
+    }
   }
 }
 
@@ -176,7 +184,7 @@ function draw() {
 
   drawGround();
   drawQueen(queen);
-  drawTypeRow();   // TEMP: the lineup of ant types
+  drawTypeGrid();  // TEMP: the type × rank grid
   drawAnt(player);
 
   ctx.restore();   // undo the camera so next frame starts clean

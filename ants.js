@@ -34,11 +34,10 @@ const RANKS = {
 };
 
 // ---- The ant types (we'll add more here) ----
-// Each type is just a description; the row preview below builds a real ant
-// from it. For now they only differ by size — later they can differ by color,
-// jaws, abilities, etc.
+// Every type comes in all three RANKS (Minor/Major/Supermajor), so a type is
+// just a name for now. Later types can differ by color, jaws, abilities, etc.
 const ANT_TYPES = [
-  { name: "Worker", size: 12 },
+  { name: "Basic" },
 ];
 
 // ---- Curved mandibles (jaws), shared by the worker and the queen ----
