@@ -52,7 +52,7 @@ const ANT_TYPES = [
 // ---- Stinger jab numbers, shared by drawAnt (the look) and doSting (the hit)
 // so the hitbox lands exactly on the drawn stinger tip. ----
 const STING_TWIST = 1.3;   // whole-body twist at the peak (radians)
-const STING_CURL  = 3.0;   // how far the tail rotates over (radians)
+const STING_CURL  = 2.2;   // how far the tail rotates over (radians)
 const STING_PIVOT = -2;    // x of the tail's pivot (in body units, ×k)
 const STING_TIPX  = -18;   // x of the stinger tip (in body units, ×k)
 
