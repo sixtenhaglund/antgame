@@ -217,20 +217,19 @@ function drawAnt(a) {
     ctx.fill();
   }
   if (type && type.armored) {
-    // dark armor plate covering the back (thorax + abdomen).
-    ctx.fillStyle = "rgba(0,0,0,0.45)";
-    ctx.beginPath();
-    ctx.ellipse(-4 * k, 0, 9 * k, 6 * k, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#2a2a2a";
-    ctx.lineWidth = 1.2 * k;
-    ctx.stroke();
-    // two light ridge lines across the plate, for a plated look.
-    ctx.strokeStyle = "rgba(255,255,255,0.18)";
+    // two smaller armor plates: one on the thorax (middle), one on the abdomen.
     ctx.lineWidth = 1 * k;
-    for (const rx of [-8, -2]) {
+    for (const plate of [[0, 4.6, 3.8], [-7, 5.6, 4.6]]) {   // [center-x, rx, ry]
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
       ctx.beginPath();
-      ctx.arc(rx * k, 0, 3.5 * k, -0.9, 0.9);
+      ctx.ellipse(plate[0] * k, 0, plate[1] * k, plate[2] * k, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#2a2a2a";
+      ctx.stroke();
+      // a light highlight arc on each shell
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.beginPath();
+      ctx.arc(plate[0] * k, 0, plate[1] * 0.6 * k, -0.9, 0.9);
       ctx.stroke();
     }
   }
