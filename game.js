@@ -11,8 +11,8 @@ const acidBlobs = [];       // all acid blobs currently in the air
 
 // Spray a fan of acid blobs out of the player's mouth, toward where it aims.
 function spawnAcid() {
-  const mouthX = player.x + Math.cos(player.angle) * player.size * 1.3;
-  const mouthY = player.y + Math.sin(player.angle) * player.size * 1.3;
+  const mouthX = player.x + Math.cos(player.angle) * player.size * 0.7;
+  const mouthY = player.y + Math.sin(player.angle) * player.size * 0.7;
   for (let i = -1; i <= 1; i++) {                 // three blobs in a small fan
     const a = player.angle + i * 0.18;            // spread them by angle
     acidBlobs.push({
