@@ -143,6 +143,7 @@ function doSting() {
       spawnSplash(tip.x, tip.y, "220,60,50");   // red particles at the stinger tip
     }
   }
+  hitFoodBlocks(tip.x, tip.y, hitR, player.stingDmg);   // can break food blocks
 }
 
 // ---- Splash: tiny droplets that burst out where an attack lands ----
@@ -204,6 +205,17 @@ function updateAcid() {
         break;
       }
     }
+    // or a food block?
+    if (!hit) {
+      for (const fb of foodBlocks) {
+        if (fb.broken) continue;
+        if (Math.hypot(b.x - fb.x, b.y - fb.y) < fb.size + b.r) {
+          hitFoodBlocks(b.x, b.y, b.r, b.dmg);
+          hit = true;
+          break;
+        }
+      }
+    }
 
     if (hit || b.life <= 0) acidBlobs.splice(i, 1);   // remove used-up blob
   }
@@ -252,8 +264,9 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-// A food block you can stand on to refill your food (for testing the Weaver).
-const foodBlock = { x: 0, y: 0, size: 16 };
+// ---- Food blocks: break one (attack it) to drop a morsel you can pick up ----
+const foodBlocks = [];
+const foodPickups = [];
 
 // Place the ants once at the start.
 function placeAnts() {
@@ -261,22 +274,80 @@ function placeAnts() {
   queen.y = canvas.height / 2;
   player.x = canvas.width / 2 - 120;
   player.y = canvas.height / 2 + 80;
-  foodBlock.x = queen.x + 150;   // off to the side
-  foodBlock.y = queen.y + 30;
+  // a few food blocks off to the side
+  foodBlocks.length = 0;
+  for (const [dx, dy] of [[150, 20], [210, -40], [120, 90]]) {
+    foodBlocks.push({ x: queen.x + dx, y: queen.y + dy, size: 14, hp: 10, maxHp: 10, broken: false, respawn: 0 });
+  }
 }
 placeAnts();
 
-function drawFoodBlock() {
-  const s = foodBlock.size;
-  ctx.fillStyle = "#6ab04a";
-  ctx.fillRect(foodBlock.x - s, foodBlock.y - s, s * 2, s * 2);
-  ctx.strokeStyle = "#3a6a2a";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(foodBlock.x - s, foodBlock.y - s, s * 2, s * 2);
-  ctx.fillStyle = "#12200a";
-  ctx.font = "9px monospace";
-  ctx.textAlign = "center";
-  ctx.fillText("FOOD", foodBlock.x, foodBlock.y + 3);
+// Damage any food block near a hit point; break it → drop one food morsel.
+function hitFoodBlocks(hx, hy, reach, amount) {
+  for (const b of foodBlocks) {
+    if (b.broken) continue;
+    if (Math.hypot(hx - b.x, hy - b.y) < reach + b.size) {
+      b.hp -= amount;
+      spawnSplash(hx, hy, "170,130,70");         // woody chips
+      if (b.hp <= 0) {
+        b.broken = true;
+        b.respawn = 300;                         // comes back after ~5s
+        foodPickups.push({ x: b.x, y: b.y });    // drops one food
+        spawnSplash(b.x, b.y, "150,210,80");
+      }
+    }
+  }
+}
+
+function updateFood() {
+  // broken blocks respawn after a while
+  for (const b of foodBlocks) {
+    if (b.broken && b.respawn > 0) {
+      b.respawn--;
+      if (b.respawn === 0) { b.broken = false; b.hp = b.maxHp; }
+    }
+  }
+  // walk over a morsel to collect it (+1 food)
+  for (let i = foodPickups.length - 1; i >= 0; i--) {
+    const p = foodPickups[i];
+    if (Math.hypot(player.x - p.x, player.y - p.y) < player.radius + 10) {
+      player.food = Math.min(player.maxFood, player.food + 1);
+      foodPickups.splice(i, 1);
+    }
+  }
+}
+
+function drawFood() {
+  for (const b of foodBlocks) {
+    if (b.broken) continue;
+    const s = b.size;
+    ctx.fillStyle = "#6ab04a";
+    ctx.fillRect(b.x - s, b.y - s, s * 2, s * 2);
+    ctx.strokeStyle = "#3a6a2a";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(b.x - s, b.y - s, s * 2, s * 2);
+    ctx.fillStyle = "#12200a";
+    ctx.font = "8px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("FOOD", b.x, b.y + 3);
+    // damage bar once it's been hit
+    if (b.hp < b.maxHp) {
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.fillRect(b.x - s, b.y - s - 6, s * 2, 3);
+      ctx.fillStyle = "#5ad25a";
+      ctx.fillRect(b.x - s, b.y - s - 6, s * 2 * (b.hp / b.maxHp), 3);
+    }
+  }
+  // dropped morsels
+  for (const p of foodPickups) {
+    ctx.fillStyle = "#b6e05a";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#3a6a2a";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
 }
 
 // ---- Test dummies: one per rank, to practice attacks on ----
@@ -463,10 +534,8 @@ function update() {
   // Stop the player from walking through the queen.
   keepApart(player, queen);
 
-  // Standing on the food block refills your food.
-  if (Math.hypot(player.x - foodBlock.x, player.y - foodBlock.y) < player.radius + foodBlock.size) {
-    player.food = player.maxFood;
-  }
+  // update food blocks (respawn) and pick up any morsels we're standing on
+  updateFood();
 
   // Walking animation: did we actually move? If so, advance the leg swing.
   player.moving = (player.x !== startX || player.y !== startY);
@@ -490,6 +559,7 @@ function update() {
         spawnSplash(mx, my, "220,60,50");   // red particles at the mouth
       }
     }
+    hitFoodBlocks(mx, my, player.size * 0.9, player.dmg);   // can break food blocks
   }
   if (player.biteAnim > 0) player.biteAnim--;
   if (player.biteCooldown > 0) player.biteCooldown--;
@@ -678,7 +748,7 @@ function draw() {
   ctx.translate(-player.x, -player.y);
 
   drawGround();
-  drawFoodBlock();
+  drawFood();
   drawQueen(queen);
   drawTypeGrid();  // TEMP: the type × rank grid
   drawDummies();   // practice targets
