@@ -38,6 +38,7 @@ const RANKS = {
 // just a name for now. Later types can differ by color, jaws, abilities, etc.
 const ANT_TYPES = [
   { name: "Basic" },
+  { name: "Spitter", spitter: true },   // acid spitter: green gland on its back
 ];
 
 // ---- Curved mandibles (jaws), shared by the worker and the queen ----
@@ -130,6 +131,21 @@ function drawAnt(a) {
   for (const seg of [[6, 3, 1], [0, 4, 0], [-7, 5, 0]]) {   // [center-x, radius, lunge]
     ctx.beginPath();
     ctx.ellipse((seg[0] + lunge * seg[2]) * k, 0, seg[1] * k, seg[1] * 0.8 * k, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ---- type markings, so you can tell ants apart at a glance ----
+  const type = a.type;
+  if (type && type.spitter) {
+    // bright green acid gland on the abdomen (the rear segment, at -7).
+    ctx.fillStyle = "#aef25a";
+    ctx.beginPath();
+    ctx.arc(-7 * k, 0, 2.6 * k, 0, Math.PI * 2);
+    ctx.fill();
+    // a little white shine so it looks wet.
+    ctx.fillStyle = "rgba(255,255,255,0.45)";
+    ctx.beginPath();
+    ctx.arc(-8 * k, -1 * k, 1 * k, 0, Math.PI * 2);
     ctx.fill();
   }
 

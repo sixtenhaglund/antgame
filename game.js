@@ -158,10 +158,10 @@ function drawTypeGrid() {
     ctx.textAlign = "right";
     ctx.fillText(ANT_TYPES[r].name, startX - colSpacing * 0.7, y);
 
-    // one ant per rank across the row
+    // one ant per rank across the row, drawn with this row's type markings
     for (let c = 0; c < rankNames.length; c++) {
       const rank = RANKS[rankNames[c]];
-      drawAnt({ x: startX + c * colSpacing, y, size: rank.size, color: ANT_COLOR, angle: 0 });
+      drawAnt({ x: startX + c * colSpacing, y, size: rank.size, color: ANT_COLOR, angle: 0, type: ANT_TYPES[r] });
     }
   }
 }
