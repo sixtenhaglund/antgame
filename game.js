@@ -406,9 +406,17 @@ function drawTypeGrid() {
   for (let r = 0; r < ANT_TYPES.length; r++) {
     const y = startY + r * rowSpacing;
 
-    // row label: the type name, off to the left
+    // row label: the type name, off to the left, with its ability under it
+    const type = ANT_TYPES[r];
     ctx.textAlign = "right";
-    ctx.fillText(ANT_TYPES[r].name, startX - colSpacing * 0.7, y);
+    ctx.fillStyle = "#e8dcc0";
+    ctx.font = "11px monospace";
+    ctx.fillText(type.name, startX - colSpacing * 0.7, y);
+    if (type.ability) {
+      ctx.fillStyle = "#b8a888";
+      ctx.font = "9px monospace";
+      ctx.fillText(type.ability, startX - colSpacing * 0.7, y + 13);
+    }
 
     // one ant per rank across the row, drawn with this row's type markings
     for (let c = 0; c < rankNames.length; c++) {

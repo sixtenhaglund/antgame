@@ -45,8 +45,8 @@ const RANKS = {
 // just a name for now. Later types can differ by color, jaws, abilities, etc.
 const ANT_TYPES = [
   { name: "Basic" },
-  { name: "Spitter", spitter: true },   // acid spitter: green gland on its back
-  { name: "Stinger", stinger: true },   // venom stinger: spins and jabs
+  { name: "Spitter", spitter: true, ability: "E: spray acid (ranged)" },
+  { name: "Stinger", stinger: true, ability: "E: venom sting (melee, big hit)" },
 ];
 
 // ---- Curved mandibles (jaws), shared by the worker and the queen ----
@@ -139,18 +139,21 @@ function drawAnt(a) {
     }
   }
 
-  // The Stinger arches its back end sideways as it jabs (like a scorpion).
-  const curl = (a.type && a.type.stinger) ? rise * 4 : 0;
+  // Two different ability body-motions, one per type:
+  //   rearUp — Spitter's abdomen swells and pulls back (to shoot).
+  //   curl   — Stinger's back end arches sideways (to jab).
+  const rearUp = (a.type && a.type.spitter) ? rise : 0;
+  const curl   = (a.type && a.type.stinger) ? rise * 4 : 0;
 
   // body: three ellipses — head (small, front), thorax, abdomen (big, rear).
   // 3rd number = how much the bite-lunge moves this segment (only the head).
-  // 4th number = how much the ability-rise / curl affects it (only the abdomen).
+  // 4th number = how much rearUp / curl affects it (only the abdomen).
   ctx.fillStyle = c;
-  for (const seg of [[6, 3, 1, 0], [0, 4, 0, 0], [-7, 5, 0, 1]]) {  // [x, radius, lunge, rise]
-    const segRise = rise * seg[3];
-    const rad = seg[1] * (1 + segRise * 0.5);                  // swell
-    const cx = (seg[0] + lunge * seg[2] - segRise * 2) * k;    // pull back
-    const cy = curl * seg[3] * k;                             // abdomen curls aside
+  for (const seg of [[6, 3, 1, 0], [0, 4, 0, 0], [-7, 5, 0, 1]]) {  // [x, radius, lunge, rear]
+    const segRear = rearUp * seg[3];
+    const rad = seg[1] * (1 + segRear * 0.5);                 // swell (Spitter only)
+    const cx = (seg[0] + lunge * seg[2] - segRear * 2) * k;   // pull back (Spitter only)
+    const cy = curl * seg[3] * k;                            // abdomen curls aside (Stinger)
     ctx.beginPath();
     ctx.ellipse(cx, cy, rad * k, rad * 0.8 * k, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -190,7 +193,7 @@ function drawAnt(a) {
   // head's lunge, so the whole "mouth" charges forward together.
   // During the ability the mouth gapes open, so feed a negative value.
   let jawBite = bite;
-  if (a.abilityAnim > 0) jawBite = -rise;
+  if (a.abilityAnim > 0 && a.type && a.type.spitter) jawBite = -rise;
   drawMandibles((8 + lunge) * k, k * 0.6, jawBite);
 
   ctx.restore();
