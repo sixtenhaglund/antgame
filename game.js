@@ -22,24 +22,50 @@ function placeAnts() {
 }
 placeAnts();
 
-// ---- Game state: "menu" until a rank is chosen, then "playing" ----
+// ---- Game state: "menu" until a rank AND type are chosen, then "playing" ----
 let gameState = "menu";
+let chosenRank = null;   // remembered between step 1 and step 2
 
-// Build one button per rank from the RANKS data, and start the game on click.
+const step1 = document.getElementById("step1");
+const step2 = document.getElementById("step2");
+
+// Step 1: one button per rank. Clicking one moves us to the type step.
 const ranksDiv = document.getElementById("ranks");
 for (const name in RANKS) {
   const rank = RANKS[name];
   const btn = document.createElement("button");
   btn.innerHTML = name + "<small>" + rank.desc + "</small>";
-  btn.addEventListener("click", () => startGame(name));
+  btn.addEventListener("click", () => chooseRank(name));
   ranksDiv.appendChild(btn);
 }
 
-function startGame(rankName) {
-  const rank = RANKS[rankName];
-  player.size = rank.size;       // apply the chosen rank to the player ant
+// Step 2: one button per type. Clicking one starts the game.
+const typesDiv = document.getElementById("types");
+for (const type of ANT_TYPES) {
+  const btn = document.createElement("button");
+  btn.textContent = type.name;
+  btn.addEventListener("click", () => startGame(type));
+  typesDiv.appendChild(btn);
+}
+
+// Back button returns from the type step to the rank step.
+document.getElementById("backBtn").addEventListener("click", () => {
+  step2.style.display = "none";
+  step1.style.display = "flex";
+});
+
+function chooseRank(rankName) {
+  chosenRank = rankName;
+  step1.style.display = "none";    // hide rank step
+  step2.style.display = "flex";    // show type step
+}
+
+function startGame(type) {
+  const rank = RANKS[chosenRank];
+  player.size = rank.size;         // apply the chosen rank...
   player.radius = rank.radius;
   player.speed = rank.speed;
+  player.type = type;              // ...and the chosen type (for its markings)
   document.getElementById("menu").style.display = "none";  // hide the menu
   gameState = "playing";
 }

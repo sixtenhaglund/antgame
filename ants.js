@@ -23,7 +23,8 @@ const player = {
   walkPhase: 0,      // counts up while walking; drives the leg swing
   moving: false,     // did it move this frame?
   biteAnim: 0,       // counts down during a bite (0 = not biting)
-  biteCooldown: 0    // counts down after a bite before you can bite again
+  biteCooldown: 0,   // counts down after a bite before you can bite again
+  type: null         // which ant type you chose (set from the menu)
 };
 
 // ---- Player ranks: pick one at the start. Bigger = slower but tougher. ----
