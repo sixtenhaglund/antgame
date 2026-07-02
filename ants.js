@@ -160,13 +160,6 @@ function drawAnt(a) {
     ctx.beginPath();
     ctx.arc(glandX - 1 * k, -1 * k, glandR * 0.35, 0, Math.PI * 2);
     ctx.fill();
-    // a puff of acid bursting from the mouth right as it fires.
-    if (rise > 0.5) {
-      ctx.fillStyle = "rgba(174,242,90,0.6)";
-      ctx.beginPath();
-      ctx.arc((10 + rise * 4) * k, 0, 2.5 * rise * k, 0, Math.PI * 2);
-      ctx.fill();
-    }
   }
 
   // curved jaws poking out the front of the head — they ride along with the

@@ -40,12 +40,17 @@ function updateAcid() {
 }
 
 function drawAcid() {
+  ctx.lineCap = "round";
   for (const b of acidBlobs) {
     // fade out as life drops toward 0
-    ctx.fillStyle = "rgba(174,242,90," + (b.life / ACID_LIFE) + ")";
+    ctx.strokeStyle = "rgba(174,242,90," + (b.life / ACID_LIFE) + ")";
+    ctx.lineWidth = b.r * 0.7;   // slim streak
+    // draw a short line from the blob back along its direction of travel.
+    // As drag slows it, vx/vy shrink, so the streak naturally gets shorter.
     ctx.beginPath();
-    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(b.x, b.y);
+    ctx.lineTo(b.x - b.vx * 0.9, b.y - b.vy * 0.9);
+    ctx.stroke();
   }
 }
 
