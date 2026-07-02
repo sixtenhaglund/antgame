@@ -140,16 +140,20 @@ function drawAnt(a) {
     }
   }
 
+  // The Stinger arches its back end sideways as it jabs (like a scorpion).
+  const curl = (a.type && a.type.stinger) ? rise * 4 : 0;
+
   // body: three ellipses — head (small, front), thorax, abdomen (big, rear).
   // 3rd number = how much the bite-lunge moves this segment (only the head).
-  // 4th number = how much the ability-rise affects it (only the abdomen).
+  // 4th number = how much the ability-rise / curl affects it (only the abdomen).
   ctx.fillStyle = c;
   for (const seg of [[6, 3, 1, 0], [0, 4, 0, 0], [-7, 5, 0, 1]]) {  // [x, radius, lunge, rise]
     const segRise = rise * seg[3];
     const rad = seg[1] * (1 + segRise * 0.5);                  // swell
     const cx = (seg[0] + lunge * seg[2] - segRise * 2) * k;    // pull back
+    const cy = curl * seg[3] * k;                             // abdomen curls aside
     ctx.beginPath();
-    ctx.ellipse(cx, 0, rad * k, rad * 0.8 * k, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, cy, rad * k, rad * 0.8 * k, 0, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -170,15 +174,17 @@ function drawAnt(a) {
     ctx.fill();
   }
   if (type && type.stinger) {
-    // yellow venom stinger poking out the back (at -x). It juts further out
-    // during the ability, so the spin-and-jab reads as a real stab.
-    const baseX = -11 * k;
-    const tipX = baseX - (3 + rise * 5) * k;   // extends as rise climbs
+    // yellow venom stinger poking out the back (at -x). It's long, juts even
+    // further during the ability, and curves along with the arched abdomen.
+    const baseX = -11 * k, baseY = curl * k;
+    const tipX = baseX - (6 + rise * 9) * k;   // longer; extends as rise climbs
+    const tipY = curl * 2.2 * k;               // tip swings aside with the arch
+    const midX = (baseX + tipX) / 2, midY = (baseY + tipY) / 2;
     ctx.fillStyle = "#ffe27a";
     ctx.beginPath();
-    ctx.moveTo(baseX, -1.6 * k);
-    ctx.lineTo(tipX, 0);
-    ctx.lineTo(baseX, 1.6 * k);
+    ctx.moveTo(baseX, baseY - 1.6 * k);
+    ctx.quadraticCurveTo(midX, midY - 2 * k, tipX, tipY);   // curved outer edge to the point
+    ctx.quadraticCurveTo(midX, midY + 1 * k, baseX, baseY + 1.6 * k);
     ctx.closePath();
     ctx.fill();
   }
