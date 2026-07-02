@@ -97,7 +97,9 @@ function drawAnt(a) {
 
   ctx.save();
   ctx.translate(a.x, a.y);
-  ctx.rotate(a.angle || 0);
+  // Stinger also gives the whole body a small twist as it jabs.
+  const spin = (a.type && a.type.stinger) ? rise * 0.7 : 0;
+  ctx.rotate((a.angle || 0) + spin);
 
   // legs first, so the body sits on top of them.
   ctx.strokeStyle = c;
