@@ -51,6 +51,7 @@ const ANT_TYPES = [
   { name: "Armored", armored: true, color: "#3a2410", ability: "tanky: +HP, no ability",
     hp:    { Minor: 35,  Major: 80, Supermajor: 200 },   // explicit HP per rank
     speed: { Minor: 2.5, Major: 2,  Supermajor: 1 } },   // explicit speed per rank
+  { name: "Weaver", weaver: true, ability: "E: set a net trap (stuns 4s)" },
 ];
 
 // ---- Stinger jab numbers, shared by drawAnt (the look) and doSting (the hit)
@@ -216,6 +217,13 @@ function drawAnt(a) {
     ctx.fillStyle = "rgba(255,255,255,0.45)";
     ctx.beginPath();
     ctx.arc(glandX - 1 * k, -1 * k, glandR * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (type && type.weaver) {
+    // pale silk sac at the rear (its spinnerets).
+    ctx.fillStyle = "#e6e6f0";
+    ctx.beginPath();
+    ctx.arc(-8 * k, 0, 2.4 * k, 0, Math.PI * 2);
     ctx.fill();
   }
   if (type && type.armored) {

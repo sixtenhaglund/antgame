@@ -27,6 +27,69 @@ function spawnAcid() {
   }
 }
 
+// ---- The Weaver's net trap: stuns the first enemy that walks through ----
+const STUN_TIME = 240;   // 4 seconds at 60fps
+const nets = [];
+
+function doWeave() {
+  // drop a net a bit in front of the Weaver, where it's aiming.
+  const dist = player.size * 3;
+  const nx = player.x + Math.cos(player.angle) * dist;
+  const ny = player.y + Math.sin(player.angle) * dist;
+  nets.push({ x: nx, y: ny, r: player.size * 2.2, trapped: null, timer: 0 });
+  spawnSplash(nx, ny, "230,235,250");   // a little puff of silk
+}
+
+function updateNets() {
+  for (let i = nets.length - 1; i >= 0; i--) {
+    const net = nets[i];
+    if (!net.trapped) {
+      // armed: trap the first enemy that steps into the web.
+      for (const d of dummies) {
+        if (d.hp <= 0) continue;
+        if (Math.hypot(net.x - d.x, net.y - d.y) < net.r + d.radius) {
+          net.trapped = d;
+          net.timer = STUN_TIME;
+          break;
+        }
+      }
+    } else {
+      // holding an enemy: keep it stunned until the timer runs out (it escapes)
+      // or it dies — then the net breaks (single use).
+      net.trapped.stunned = true;
+      net.timer--;
+      if (net.timer <= 0 || net.trapped.hp <= 0) {
+        net.trapped.stunned = false;   // it escapes
+        nets.splice(i, 1);             // net breaks
+      }
+    }
+  }
+}
+
+function drawNets() {
+  for (const net of nets) {
+    ctx.strokeStyle = net.trapped ? "rgba(225,235,255,0.95)" : "rgba(205,220,240,0.6)";
+    ctx.lineWidth = 1.4;
+    // outer ring
+    ctx.beginPath();
+    ctx.arc(net.x, net.y, net.r, 0, Math.PI * 2);
+    ctx.stroke();
+    // spokes + inner rings, so it reads as a web
+    for (let a = 0; a < 8; a++) {
+      const ang = (a / 8) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(net.x, net.y);
+      ctx.lineTo(net.x + Math.cos(ang) * net.r, net.y + Math.sin(ang) * net.r);
+      ctx.stroke();
+    }
+    for (const rr of [0.35, 0.7]) {
+      ctx.beginPath();
+      ctx.arc(net.x, net.y, net.r * rr, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+}
+
 // ---- The Stinger's sting: damage lands right on the stinger tip ----
 // We replay the same transforms drawAnt uses (body twist, then tail curl about
 // its pivot) to find where the tip actually is in the world.
@@ -178,6 +241,7 @@ function placeDummies() {
       name: names[i],
       angle: Math.PI / 2,        // facing down, toward where you approach from
       respawn: 0,                // frames until it comes back after dying
+      stunned: false,            // caught in a Weaver net?
     });
   }
 }
@@ -212,6 +276,14 @@ function drawDummies() {
     }
     // draw the dummy in a reddish tint so it reads as a target
     drawAnt({ x: d.x, y: d.y, size: d.size, color: "#8a4a3a", angle: d.angle });
+
+    // blue glow while stunned (caught in a net)
+    if (d.stunned) {
+      ctx.fillStyle = "rgba(120,180,255,0.3)";
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.radius + 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     // health bar above it
     const w = d.size * 2.4;
@@ -349,7 +421,7 @@ function update() {
   updateDummies();
 
   // Ability (E key): any type that has one can start its ability animation.
-  const hasAbility = player.type && (player.type.spitter || player.type.stinger);
+  const hasAbility = player.type && (player.type.spitter || player.type.stinger || player.type.weaver);
   if (keys["e"] && player.abilityCooldown <= 0 && player.abilityAnim <= 0 && hasAbility) {
     player.abilityAnim = ABILITY_TIME;
     player.abilityCooldown = ABILITY_TIME + ABILITY_COOLDOWN;
@@ -359,6 +431,7 @@ function update() {
   if (player.abilityAnim === SHOOT_FRAME) {
     if (player.type.spitter) spawnAcid();
     else if (player.type.stinger) doSting();
+    else if (player.type.weaver) doWeave();
   }
   if (player.abilityAnim > 0) player.abilityAnim--;
   if (player.abilityCooldown > 0) player.abilityCooldown--;
@@ -366,6 +439,7 @@ function update() {
   // Move the acid blobs that are in the air, and any splash droplets.
   updateAcid();
   updateSplash();
+  updateNets();
 }
 
 // ---- Circle collision: if `a` overlaps `b`, push `a` out to b's edge ----
@@ -484,6 +558,7 @@ function draw() {
   drawQueen(queen);
   drawTypeGrid();  // TEMP: the type × rank grid
   drawDummies();   // practice targets
+  drawNets();      // net traps (drawn over the trapped enemy)
   drawAcid();      // under the ant, so the head hides where it spawns
   drawAnt(player);
   drawSplash();    // splashes on top, since they happen out at the target
