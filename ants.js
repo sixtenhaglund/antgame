@@ -82,7 +82,7 @@ function drawAnt(a) {
     // walkPhase; we offset each pair by i so they don't all step together, and
     // the top/bottom legs swing opposite for that alternating insect gait.
     // When the ant isn't moving, swing is 0, so the legs rest.
-    const swing = a.moving ? Math.sin(a.walkPhase + i * 2) * 2.5 * k : 0;
+    const swing = a.moving ? Math.sin(a.walkPhase + i * 2) * 1.3 * k : 0;
     ctx.beginPath();
     ctx.moveTo(off * k, -2 * k); ctx.lineTo((off - 2) * k + swing, -6 * k);  // upper leg
     ctx.moveTo(off * k,  2 * k); ctx.lineTo((off - 2) * k - swing,  6 * k);  // lower leg
