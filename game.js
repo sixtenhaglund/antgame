@@ -446,13 +446,13 @@ function update() {
   if (keys["e"] && player.abilityCooldown <= 0 && player.abilityAnim <= 0 && hasAbility) {
     player.abilityAnim = ABILITY_TIME;
     player.abilityCooldown = ABILITY_TIME + ABILITY_COOLDOWN;
+    // The net drops the instant you press E (no wind-up).
+    if (player.type.weaver) doWeave();
   }
-  // The ability's effect fires partway through the animation. Each type does
-  // its own thing at that moment.
+  // Spitter/Stinger effects fire partway through the animation, at the peak.
   if (player.abilityAnim === SHOOT_FRAME) {
     if (player.type.spitter) spawnAcid();
     else if (player.type.stinger) doSting();
-    else if (player.type.weaver) doWeave();
   }
   if (player.abilityAnim > 0) player.abilityAnim--;
   if (player.abilityCooldown > 0) player.abilityCooldown--;

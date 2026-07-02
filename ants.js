@@ -45,7 +45,8 @@ const RANKS = {
 // just a name for now. Later types can differ by color, jaws, abilities, etc.
 const ANT_TYPES = [
   { name: "Basic" },
-  { name: "Spitter", spitter: true, ability: "E: spray 3 acid blobs (ranged)", abilityStat: "acidDmg", abilityLabel: "ACID" },
+  { name: "Spitter", spitter: true, ability: "E: spray 3 acid blobs (ranged)", abilityStat: "acidDmg", abilityLabel: "ACID",
+    dmg: { Minor: 2, Major: 4, Supermajor: 8 } },   // weak bite (its power is the acid)
   { name: "Stinger", stinger: true, ability: "E: venom sting (melee)", abilityStat: "stingDmg", abilityLabel: "STING",
     dmg: { Minor: 2, Major: 5, Supermajor: 10 } },   // weak bite (its power is the sting)
   { name: "Armored", armored: true, color: "#3a2410", ability: "tanky: +HP, no ability",
