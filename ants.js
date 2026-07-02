@@ -48,8 +48,8 @@ const ANT_TYPES = [
   { name: "Spitter", spitter: true, ability: "E: spray 3 acid blobs (ranged)", abilityStat: "acidDmg", abilityLabel: "ACID" },
   { name: "Stinger", stinger: true, ability: "E: venom sting (melee)", abilityStat: "stingDmg", abilityLabel: "STING" },
   { name: "Armored", armored: true, color: "#3a2410", ability: "tanky: +HP, no ability",
-    hp:    { Minor: 35,  Major: 80, Supermajor: 160 },   // explicit HP per rank
-    speed: { Minor: 2.5, Major: 2,  Supermajor: 1.5 } }, // explicit speed per rank
+    hp:    { Minor: 35,  Major: 80, Supermajor: 200 },   // explicit HP per rank
+    speed: { Minor: 2.5, Major: 2,  Supermajor: 1 } },   // explicit speed per rank
 ];
 
 // ---- Stinger jab numbers, shared by drawAnt (the look) and doSting (the hit)
