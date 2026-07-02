@@ -35,9 +35,9 @@ const player = {
 
 // ---- Player ranks: pick one at the start. Bigger = slower but tougher. ----
 const RANKS = {
-  Minor:      { size: 9,  radius: 4,  speed: 3.6, hp: 20, dmg: 4,  acidDmg: 3, stingDmg: 8,  desc: "small & fast" },
-  Major:      { size: 17, radius: 8,  speed: 2.8, hp: 50, dmg: 8,  acidDmg: 4, stingDmg: 15, desc: "balanced" },
-  Supermajor: { size: 26, radius: 13, speed: 2.0, hp: 100, dmg: 15, acidDmg: 5, stingDmg: 25, desc: "big & strong" },
+  Minor:      { size: 9,  radius: 4,  speed: 3.6, hp: 20, dmg: 4,  acidDmg: 3, stingDmg: 2,  desc: "small & fast" },
+  Major:      { size: 17, radius: 8,  speed: 2.8, hp: 50, dmg: 8,  acidDmg: 4, stingDmg: 5,  desc: "balanced" },
+  Supermajor: { size: 26, radius: 13, speed: 2.0, hp: 100, dmg: 15, acidDmg: 5, stingDmg: 10, desc: "big & strong" },
 };
 
 // ---- The ant types (we'll add more here) ----
