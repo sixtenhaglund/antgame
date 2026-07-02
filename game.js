@@ -131,27 +131,30 @@ function drawGround() {
   }
 }
 
-// ---- TEMP: draw one ant of each rank in a row, so we can see them all ----
+// ---- TEMP: draw one ant of every rank and type in a row, to see them all.
+// Anything we add to RANKS or ANT_TYPES shows up here automatically. ----
 function drawTypeRow() {
+  // build one combined list of {name, size} from both sources.
+  const entries = [];
+  for (const name in RANKS) entries.push({ name, size: RANKS[name].size });
+  for (const type of ANT_TYPES) entries.push({ name: type.name, size: type.size });
+
   const spacing = 80;
   const rowY = queen.y + 120;
-  const names = Object.keys(RANKS);   // ["Minor", "Major", "Supermajor"]
-  // center the row under the queen
-  const startX = queen.x - ((names.length - 1) * spacing) / 2;
+  const startX = queen.x - ((entries.length - 1) * spacing) / 2;   // center the row
 
-  for (let i = 0; i < names.length; i++) {
-    const name = names[i];
-    const rank = RANKS[name];
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i];
     const x = startX + i * spacing;
 
-    // build a real ant from the rank and draw it facing right.
-    drawAnt({ x, y: rowY, size: rank.size, color: ANT_COLOR, angle: 0 });
+    // build a real ant from the entry and draw it facing right.
+    drawAnt({ x, y: rowY, size: e.size, color: ANT_COLOR, angle: 0 });
 
     // label under it
     ctx.fillStyle = "#e8dcc0";
     ctx.font = "10px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(name, x, rowY + 26);
+    ctx.fillText(e.name, x, rowY + 26);
   }
 }
 
