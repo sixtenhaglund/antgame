@@ -278,8 +278,8 @@ function draw() {
   drawGround();
   drawQueen(queen);
   drawTypeGrid();  // TEMP: the type × rank grid
+  drawAcid();      // under the ant, so the head hides where it spawns
   drawAnt(player);
-  drawAcid();
 
   ctx.restore();   // undo the camera so next frame starts clean
 }
