@@ -26,6 +26,14 @@ const player = {
   biteCooldown: 0    // counts down after a bite before you can bite again
 };
 
+// ---- The ant types (we'll add more here) ----
+// Each type is just a description; the row preview below builds a real ant
+// from it. For now they only differ by size — later they can differ by color,
+// jaws, abilities, etc.
+const ANT_TYPES = [
+  { name: "Worker", size: 12 },
+];
+
 // ---- Curved mandibles (jaws), shared by the worker and the queen ----
 // frontX = where they attach at the front of the head; k = size scale.
 // bite = 0 (open) .. 1 (snapped shut): the tips swing toward the center and

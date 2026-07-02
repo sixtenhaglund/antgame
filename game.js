@@ -107,6 +107,28 @@ function drawGround() {
   }
 }
 
+// ---- TEMP: draw one of each ant type in a row, so we can see them all ----
+function drawTypeRow() {
+  const spacing = 70;
+  const rowY = queen.y + 110;
+  // center the row under the queen
+  const startX = queen.x - ((ANT_TYPES.length - 1) * spacing) / 2;
+
+  for (let i = 0; i < ANT_TYPES.length; i++) {
+    const type = ANT_TYPES[i];
+    const x = startX + i * spacing;
+
+    // build a real ant from the type description and draw it facing right.
+    drawAnt({ x, y: rowY, size: type.size, color: ANT_COLOR, angle: 0 });
+
+    // label under it
+    ctx.fillStyle = "#e8dcc0";
+    ctx.font = "10px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(type.name, x, rowY + 22);
+  }
+}
+
 // ---- Draw: paint the frame ----
 function draw() {
   // Clear the screen by repainting the soil background (before zoom, so it
@@ -125,6 +147,7 @@ function draw() {
 
   drawGround();
   drawQueen(queen);
+  drawTypeRow();   // TEMP: the lineup of ant types
   drawAnt(player);
 
   ctx.restore();   // undo the camera so next frame starts clean
