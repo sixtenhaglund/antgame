@@ -278,6 +278,7 @@ const enemies = [];
 function spawnAtNest(i) {
   const n = nests[i];
   player.colony = n;
+  player.color = n.color;   // ants wear their team's color
   player.x = n.queen.x;
   player.y = n.queen.y + 70;
 }
@@ -689,10 +690,9 @@ function drawWorldBorder() {
   ctx.strokeRect(0, 0, WORLD, WORLD);
 }
 
-// ---- Colored ring around the player, showing their colony ----
+// ---- White ring around the player, so you can spot yourself among allies ----
 function drawColonyRing() {
-  if (!player.colony) return;
-  ctx.strokeStyle = player.colony.color;
+  ctx.strokeStyle = "#ffffff";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(player.x, player.y, player.size + 5, 0, Math.PI * 2);
