@@ -25,6 +25,7 @@ const player = {
   biteAnim: 0,       // counts down during a bite (0 = not biting)
   biteCooldown: 0,   // counts down after a bite before you can bite again
   abilityCooldown: 0,// counts down between ability uses (E key)
+  abilityAnim: 0,    // counts down during the rear-up-and-shoot animation
   type: null         // which ant type you chose (set from the menu)
 };
 
@@ -126,29 +127,46 @@ function drawAnt(a) {
     }
   }
 
+  // Ability rear-up: rise goes 0 → 1 → 0 over the ability animation. The
+  // abdomen swells and pulls back as if the ant is tilting its rear up.
+  let rise = 0;
+  if (a.abilityAnim > 0) rise = Math.sin((1 - a.abilityAnim / ABILITY_TIME) * Math.PI);
+
   // body: three ellipses — head (small, front), thorax, abdomen (big, rear).
-  // The third number is how much the lunge moves that segment: only the head
-  // (1) thrusts; thorax and abdomen (0) stay put.
+  // 3rd number = how much the bite-lunge moves this segment (only the head).
+  // 4th number = how much the ability-rise affects it (only the abdomen).
   ctx.fillStyle = c;
-  for (const seg of [[6, 3, 1], [0, 4, 0], [-7, 5, 0]]) {   // [center-x, radius, lunge]
+  for (const seg of [[6, 3, 1, 0], [0, 4, 0, 0], [-7, 5, 0, 1]]) {  // [x, radius, lunge, rise]
+    const segRise = rise * seg[3];
+    const rad = seg[1] * (1 + segRise * 0.5);                  // swell
+    const cx = (seg[0] + lunge * seg[2] - segRise * 2) * k;    // pull back
     ctx.beginPath();
-    ctx.ellipse((seg[0] + lunge * seg[2]) * k, 0, seg[1] * k, seg[1] * 0.8 * k, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, 0, rad * k, rad * 0.8 * k, 0, 0, Math.PI * 2);
     ctx.fill();
   }
 
   // ---- type markings, so you can tell ants apart at a glance ----
   const type = a.type;
   if (type && type.spitter) {
-    // bright green acid gland on the abdomen (the rear segment, at -7).
+    // green acid gland on the abdomen — swells and pulls back with the rise.
+    const glandX = (-7 - rise * 2) * k;
+    const glandR = 2.6 * (1 + rise * 0.6) * k;
     ctx.fillStyle = "#aef25a";
     ctx.beginPath();
-    ctx.arc(-7 * k, 0, 2.6 * k, 0, Math.PI * 2);
+    ctx.arc(glandX, 0, glandR, 0, Math.PI * 2);
     ctx.fill();
     // a little white shine so it looks wet.
     ctx.fillStyle = "rgba(255,255,255,0.45)";
     ctx.beginPath();
-    ctx.arc(-8 * k, -1 * k, 1 * k, 0, Math.PI * 2);
+    ctx.arc(glandX - 1 * k, -1 * k, glandR * 0.35, 0, Math.PI * 2);
     ctx.fill();
+    // a puff of acid bursting from the mouth right as it fires.
+    if (rise > 0.5) {
+      ctx.fillStyle = "rgba(174,242,90,0.6)";
+      ctx.beginPath();
+      ctx.arc((10 + rise * 4) * k, 0, 2.5 * rise * k, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   // curved jaws poking out the front of the head — they ride along with the

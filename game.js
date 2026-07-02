@@ -5,6 +5,8 @@ const BITE_COOLDOWN = 45;   // extra frames you must wait after a bite before bi
 const ACID_SPEED = 7;        // how fast blobs fly
 const ACID_LIFE = 38;        // frames a blob lives before fading
 const ABILITY_COOLDOWN = 30; // frames between acid sprays
+const ABILITY_TIME = 26;     // length of the rear-up-and-shoot animation
+const SHOOT_FRAME = 13;      // the frame within it where the acid actually fires
 const acidBlobs = [];       // all acid blobs currently in the air
 
 // Spray a fan of acid blobs out of the player's mouth, toward where it aims.
@@ -165,11 +167,15 @@ function update() {
   if (player.biteAnim > 0) player.biteAnim--;
   if (player.biteCooldown > 0) player.biteCooldown--;
 
-  // Ability (E key): the Spitter sprays acid. Gated by its own cooldown.
-  if (keys["e"] && player.abilityCooldown <= 0 && player.type && player.type.spitter) {
-    spawnAcid();
-    player.abilityCooldown = ABILITY_COOLDOWN;
+  // Ability (E key): start the Spitter's rear-up-and-shoot animation.
+  if (keys["e"] && player.abilityCooldown <= 0 && player.abilityAnim <= 0
+      && player.type && player.type.spitter) {
+    player.abilityAnim = ABILITY_TIME;
+    player.abilityCooldown = ABILITY_TIME + ABILITY_COOLDOWN;
   }
+  // The acid actually fires partway through the animation, at the peak.
+  if (player.abilityAnim === SHOOT_FRAME) spawnAcid();
+  if (player.abilityAnim > 0) player.abilityAnim--;
   if (player.abilityCooldown > 0) player.abilityCooldown--;
 
   // Move the acid blobs that are in the air.
