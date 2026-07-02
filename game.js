@@ -27,6 +27,41 @@ function spawnAcid() {
   }
 }
 
+// ---- Acid splash: tiny droplets that burst out where a blob lands ----
+const splashes = [];
+function spawnSplash(x, y) {
+  for (let i = 0; i < 6; i++) {
+    const a = Math.random() * Math.PI * 2;      // fly out in a random direction
+    const spd = 1 + Math.random() * 2;
+    splashes.push({
+      x, y,
+      vx: Math.cos(a) * spd,
+      vy: Math.sin(a) * spd,
+      life: 10 + Math.random() * 6,
+      r: 1 + Math.random() * 1.5,
+    });
+  }
+}
+function updateSplash() {
+  for (let i = splashes.length - 1; i >= 0; i--) {
+    const s = splashes[i];
+    s.x += s.vx;
+    s.y += s.vy;
+    s.vx *= 0.88;
+    s.vy *= 0.88;
+    s.life--;
+    if (s.life <= 0) splashes.splice(i, 1);
+  }
+}
+function drawSplash() {
+  for (const s of splashes) {
+    ctx.fillStyle = "rgba(174,242,90," + Math.min(1, s.life / 8) + ")";
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
 // Move every blob, slow it down, and drop it once its life runs out.
 function updateAcid() {
   // Loop backwards so removing an item doesn't skip the next one.
@@ -44,6 +79,7 @@ function updateAcid() {
       if (d.hp <= 0) continue;
       if (Math.hypot(b.x - d.x, b.y - d.y) < d.radius + b.r) {
         hurtDummy(d, b.dmg);
+        spawnSplash(b.x, b.y);   // tiny splash where it lands
         hit = true;
         break;
       }
@@ -284,8 +320,9 @@ function update() {
   if (player.abilityAnim > 0) player.abilityAnim--;
   if (player.abilityCooldown > 0) player.abilityCooldown--;
 
-  // Move the acid blobs that are in the air.
+  // Move the acid blobs that are in the air, and any splash droplets.
   updateAcid();
+  updateSplash();
 }
 
 // ---- Circle collision: if `a` overlaps `b`, push `a` out to b's edge ----
@@ -389,6 +426,7 @@ function draw() {
   drawDummies();   // practice targets
   drawAcid();      // under the ant, so the head hides where it spawns
   drawAnt(player);
+  drawSplash();    // splashes on top, since they happen out at the target
 
   ctx.restore();   // undo the camera so next frame starts clean
 }
