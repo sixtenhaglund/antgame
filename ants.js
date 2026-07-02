@@ -178,7 +178,7 @@ function drawAnt(a) {
 
     // straight, fixed stinger out the back — the curl is what turns it forward.
     const baseX = -11 * k, tipX = STING_TIPX * k;
-    ctx.fillStyle = "#ffe27a";
+    ctx.fillStyle = "#f5f0e0";
     ctx.beginPath();
     ctx.moveTo(baseX, -1.6 * k);
     ctx.lineTo(tipX, 0);
