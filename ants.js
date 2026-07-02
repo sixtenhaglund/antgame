@@ -97,9 +97,7 @@ function drawAnt(a) {
 
   ctx.save();
   ctx.translate(a.x, a.y);
-  // Stingers turn a quarter-turn (90°) as they arch and jab.
-  const spin = (a.type && a.type.stinger) ? rise * (Math.PI / 2) : 0;
-  ctx.rotate((a.angle || 0) + spin);
+  ctx.rotate(a.angle || 0);
 
   // legs first, so the body sits on top of them.
   ctx.strokeStyle = c;
@@ -139,23 +137,53 @@ function drawAnt(a) {
     }
   }
 
-  // Two different ability body-motions, one per type:
-  //   rearUp — Spitter's abdomen swells and pulls back (to shoot).
-  //   curl   — Stinger's back end arches sideways (to jab).
+  const isStinger = a.type && a.type.stinger;
+  // Spitter's abdomen swells and pulls back to shoot.
   const rearUp = (a.type && a.type.spitter) ? rise : 0;
-  const curl   = (a.type && a.type.stinger) ? rise * 4 : 0;
 
-  // body: three ellipses — head (small, front), thorax, abdomen (big, rear).
-  // 3rd number = how much the bite-lunge moves this segment (only the head).
-  // 4th number = how much rearUp / curl affects it (only the abdomen).
   ctx.fillStyle = c;
-  for (const seg of [[6, 3, 1, 0], [0, 4, 0, 0], [-7, 5, 0, 1]]) {  // [x, radius, lunge, rear]
-    const segRear = rearUp * seg[3];
-    const rad = seg[1] * (1 + segRear * 0.5);                 // swell (Spitter only)
-    const cx = (seg[0] + lunge * seg[2] - segRear * 2) * k;   // pull back (Spitter only)
-    const cy = curl * seg[3] * k;                            // abdomen curls aside (Stinger)
+
+  // head and thorax — always drawn straight along the body.
+  for (const seg of [[6, 3, 1], [0, 4, 0]]) {   // [center-x, radius, lunge]
+    const cx = (seg[0] + lunge * seg[2]) * k;
     ctx.beginPath();
-    ctx.ellipse(cx, cy, rad * k, rad * 0.8 * k, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, 0, seg[1] * k, seg[1] * 0.8 * k, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // abdomen (the big rear segment)
+  if (isStinger) {
+    // Curl the whole tail around a pivot near the body, so it swings up and
+    // OVER toward the front — bringing the straight stinger to face forward.
+    ctx.save();
+    const pivotX = -2 * k;
+    const tailCurl = rise * 2.8;                 // ~160° at the peak of the jab
+    ctx.translate(pivotX, 0);
+    ctx.rotate(tailCurl);
+    ctx.translate(-pivotX, 0);
+
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.ellipse(-7 * k, 0, 5 * k, 5 * 0.8 * k, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // straight, fixed stinger out the back — the curl is what turns it forward.
+    const baseX = -11 * k, tipX = baseX - 7 * k;
+    ctx.fillStyle = "#ffe27a";
+    ctx.beginPath();
+    ctx.moveTo(baseX, -1.6 * k);
+    ctx.lineTo(tipX, 0);
+    ctx.lineTo(baseX, 1.6 * k);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  } else {
+    // normal abdomen, with the Spitter's optional swell + pull-back.
+    const rad = 5 * (1 + rearUp * 0.5);
+    const cx = (-7 - rearUp * 2) * k;
+    ctx.beginPath();
+    ctx.ellipse(cx, 0, rad * k, rad * 0.8 * k, 0, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -173,19 +201,6 @@ function drawAnt(a) {
     ctx.fillStyle = "rgba(255,255,255,0.45)";
     ctx.beginPath();
     ctx.arc(glandX - 1 * k, -1 * k, glandR * 0.35, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  if (type && type.stinger) {
-    // yellow venom stinger poking straight out the back (at -x). Fixed length,
-    // straight — it just rides along with the arched abdomen (baseY).
-    const baseX = -11 * k, baseY = curl * k;
-    const tipX = baseX - 7 * k;                // fixed length
-    ctx.fillStyle = "#ffe27a";
-    ctx.beginPath();
-    ctx.moveTo(baseX, baseY - 1.6 * k);
-    ctx.lineTo(tipX, baseY);
-    ctx.lineTo(baseX, baseY + 1.6 * k);
-    ctx.closePath();
     ctx.fill();
   }
 
